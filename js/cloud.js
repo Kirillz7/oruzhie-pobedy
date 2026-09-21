@@ -1,11 +1,7 @@
 /* =========================================================
    CLOUD.JS — работа с Firebase Realtime Database.
-   Подключается как ES-модуль: <script type="module" src="js/cloud.js">.
+   Использует compat-версию SDK (обычный <script>, не модуль).
    ========================================================= */
-
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-import { getDatabase, ref, set, onValue, get } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAir3uF_2zCdj1ltMQP_Yzm_wR1Ro1ISbA",
@@ -23,18 +19,23 @@ const Cloud = {
 
   async init(){
     try {
-      this.app = initializeApp(firebaseConfig);
-      this.auth = getAuth(this.app);
-      this.db = getDatabase(this.app);
-      await signInAnonymously(this.auth);
-      onAuthStateChanged(this.auth, user => {
-        if (user){
+      if (typeof firebase === 'undefined'){
+        throw new Error('Firebase SDK не загружен. Проверьте теги <script> в HTML.');
+      }
+      this.app = firebase.initializeApp(firebaseConfig);
+      this.auth = firebase.auth();
+      this.db = firebase.database();
+
+      this.auth.onAuthStateChanged(user => {
+        if (user && !this.ready){
           this.ready = true;
           console.log('[Cloud] подключено к Firebase, uid:', user.uid);
           this.callbacks.forEach(cb => cb());
           this.callbacks = [];
         }
       });
+
+      await this.auth.signInAnonymously();
     } catch (e){
       console.warn('[Cloud] Firebase не подключён:', e.message);
     }
@@ -48,8 +49,9 @@ const Cloud = {
   async pushScore(nick, xp, stats, rank){
     if (!this.ready || !nick) return false;
     try {
-      await set(ref(this.db, 'leaderboard/' + nick), {
-        nick, xp: xp || 0,
+      await this.db.ref('leaderboard/' + nick).set({
+        nick,
+        xp: xp || 0,
         rank: rank || 'Рядовой',
         stats: stats || {},
         updatedAt: Date.now()
@@ -63,16 +65,18 @@ const Cloud = {
 
   watchLeaderboard(cb){
     if (!this.ready) return () => {};
-    return onValue(ref(this.db, 'leaderboard'), snap => {
+    const ref = this.db.ref('leaderboard');
+    const handler = ref.on('value', snap => {
       const data = snap.val() || {};
       const rows = Object.values(data).sort((a, b) => (b.xp || 0) - (a.xp || 0));
       cb(rows);
     });
+    return () => ref.off('value', handler);
   },
 
   async getLeaderboard(){
     if (!this.ready) return [];
-    const snap = await get(ref(this.db, 'leaderboard'));
+    const snap = await this.db.ref('leaderboard').once('value');
     const data = snap.val() || {};
     return Object.values(data).sort((a, b) => (b.xp || 0) - (a.xp || 0));
   }
