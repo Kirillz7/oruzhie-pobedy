@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Оружие Победы — интерактивная платформа по ТТХ вооружения ВС РФ">
+<meta name="theme-color" content="#0d0f0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Оружие Победы">
+<title>Оружие Победы — ВС РФ</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="images/icon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="#home" class="logo">
+      <span class="logo__mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/>
+        </svg>
+      </span>
+      <span class="logo__text">Оружие Победы<small>Тема 52 · РЭУ им. Г.В. Плеханова</small></span>
+    </a>
+    <div class="header__actions">
+      <button id="a11yBtn" class="icon-btn" aria-label="Крупный шрифт" title="Крупный шрифт">A+</button>
+      <button id="bgBtn" class="icon-btn" aria-label="Анимированный фон" title="Фон">✨</button>
+      <button id="soundBtn" class="icon-btn" aria-label="Звук" title="Звук">🔊</button>
+      <button id="themeBtn" class="icon-btn" aria-label="Тема" title="Тема">☀️</button>
+      <a href="admin.html" class="icon-btn" aria-label="Админ-панель" title="Админ-панель">🔐</a>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <a href="#home"    class="tab" data-view="home"><span>⌂</span><b>Штаб</b></a>
+  <a href="#catalog" class="tab" data-view="catalog"><span>▤</span><b>Арсенал</b></a>
+  <a href="#games"   class="tab" data-view="games"><span>◉</span><b>Полигон</b></a>
+  <a href="#rating"  class="tab" data-view="rating"><span>★</span><b>Рейтинг</b></a>
+  <a href="#profile" class="tab" data-view="profile"><span>◐</span><b>Профиль</b></a>
+  <a href="#help"    class="tab" data-view="help"><span>?</span><b>Помощь</b></a>
+</nav>
+
+<main class="main" id="main">
+
+  <section class="view" id="view-home">
+    <div class="hero">
+      <div class="hero__bg" id="heroBg" aria-hidden="true"></div>
+
+      <div class="hero__radar" aria-hidden="true">
+        <div class="radar__grid"></div>
+        <div class="radar__rings"></div>
+        <div class="radar__cross"></div>
+        <div class="radar__sweep"></div>
+        <span class="radar__blip" style="--x:22%;--y:28%;--d:0s"></span>
+        <span class="radar__blip" style="--x:63%;--y:38%;--d:1.2s"></span>
+        <span class="radar__blip" style="--x:38%;--y:68%;--d:2.1s"></span>
+        <span class="radar__blip" style="--x:72%;--y:62%;--d:0.6s"></span>
+        <span class="radar__blip" style="--x:52%;--y:22%;--d:1.8s"></span>
+        <span class="radar__blip" style="--x:30%;--y:52%;--d:2.7s"></span>
+      </div>
+
+      <div class="hero__inner">
+        <div class="hero__kicker">// УЧЕБНЫЙ ПРОЕКТ · ОВП</div>
+        <h1 class="hero__title">Оружие<br>Победы</h1>
+        <p class="hero__sub">Интерактивная платформа по тактико-техническим характеристикам
+          основных образцов вооружения и техники ВС РФ.</p>
+        <div class="hero__btns">
+          <a href="#games" class="btn btn--primary">▶ Начать игру</a>
+          <a href="#catalog" class="btn btn--ghost">Арсенал</a>
+        </div>
+        <div class="hero__status" id="heroStatus"></div>
+      </div>
+    </div>
+
+    <h2 class="section-title"><span class="sec-mark">▸</span> Полигон</h2>
+    <div class="game-grid" id="homeGames"></div>
+
+    <h2 class="section-title"><span class="sec-mark">▸</span> Категории арсенала</h2>
+    <div class="cat-grid" id="homeCats"></div>
+
+    <h2 class="section-title"><span class="sec-mark">▸</span> Образец дня</h2>
+    <div class="grid" id="homeRandom"></div>
+  </section>
+
+  <section class="view" id="view-catalog" hidden>
+    <h1>Арсенал</h1>
+    <div class="chips" id="catChips"></div>
+    <div class="row" style="margin-bottom:12px">
+      <input type="search" id="searchInput" class="input" placeholder="Поиск: АК-12, Су-57, Ярс…" style="flex:1">
+      <button id="favFilterBtn" class="btn btn--icon" type="button" title="Избранное">☆</button>
+    </div>
+    <div class="grid" id="catalogGrid"></div>
+
+    <h2 class="section-title"><span class="sec-mark">▸</span> Глоссарий</h2>
+    <div class="panel" id="glossaryBox"></div>
+  </section>
+
+  <section class="view" id="view-games" hidden>
+    <h1>Полигон</h1>
+    <p class="muted">Выбирай игру — за каждый правильный ответ начисляется опыт (XP).</p>
+    <div class="game-grid" id="gamesHub"></div>
+
+    <div id="game-match" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>🃏 Найди пару</h2>
+      </div>
+      <div class="row" style="margin:12px 0">
+        <select id="matchCat" class="input" style="flex:1"></select>
+        <button id="matchStart" class="btn btn--primary" type="button">Новая игра</button>
+      </div>
+      <div class="hud">
+        <span>Ходы <b id="matchMoves">0</b></span>
+        <span>Время <b id="matchTime">0:00</b></span>
+        <span>Пары <b id="matchPairs">0/6</b></span>
+      </div>
+      <div class="board" id="matchBoard"></div>
+      <div id="matchInfo" class="panel" style="margin-top:14px" hidden></div>
+    </div>
+
+    <div id="game-quiz" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>⚡ Блиц-опрос</h2>
+      </div>
+      <div id="quizStart" class="panel" style="margin-top:12px">
+        <p>10 вопросов по вооружению. +10 XP за правильный ответ.</p>
+        <button id="quizStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="quizGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Вопрос <b id="qNum">1</b>/<b id="qTotal">10</b></span>
+          <span>Счёт <b id="qScore">0</b></span>
+        </div>
+        <div class="quiz-img" id="qImg">🔫</div>
+        <h2 id="qText" class="quiz-text"></h2>
+        <div class="quiz-opts" id="qOpts"></div>
+        <div class="sightbar" id="qBarWrap"><i id="qBar"></i></div>
+      </div>
+      <div id="quizResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-sil" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>🌑 Угадай по силуэту</h2>
+      </div>
+      <div id="silStart" class="panel" style="margin-top:12px">
+        <p>10 силуэтов техники. +15 XP за правильный ответ.</p>
+        <button id="silStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="silGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Вопрос <b id="silNum">1</b>/<b id="silTotal">10</b></span>
+          <span>Счёт <b id="silScore">0</b></span>
+        </div>
+        <div class="sil-img" id="silImg"></div>
+        <h2 class="quiz-text" id="silText">Что это за техника?</h2>
+        <div class="quiz-opts" id="silOpts"></div>
+      </div>
+      <div id="silResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-odd" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>❓ Найди лишнее</h2>
+      </div>
+      <div id="oddStart" class="panel" style="margin-top:12px">
+        <p>8 раундов: три образца из одной категории, один — из другой. Найди лишний. +15 XP.</p>
+        <button id="oddStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="oddGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Раунд <b id="oddNum">1</b>/<b id="oddTotal">8</b></span>
+          <span>Счёт <b id="oddScore">0</b></span>
+        </div>
+        <div class="odd-grid" id="oddGrid"></div>
+      </div>
+      <div id="oddResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-duel" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>⚔️ Дуэль</h2>
+      </div>
+      <div id="duelSetup" class="panel" style="margin-top:12px">
+        <p>Игра на одном устройстве. 10 раундов по 20 секунд. Игроки отвечают по очереди —
+          побеждает тот, кто даст больше правильных ответов.</p>
+        <div class="duel-setup">
+          <input class="input" id="duelP1" placeholder="Игрок 1 (позывной)" maxlength="20">
+          <input class="input" id="duelP2" placeholder="Игрок 2 (позывной)" maxlength="20">
+          <button class="btn btn--primary" id="duelStartBtn" type="button">Начать дуэль</button>
+        </div>
+      </div>
+      <div id="duelGame" hidden style="margin-top:12px">
+        <div class="duel-versus">
+          <div class="duel-player" id="duelCard1">
+            <b id="duelName1">Игрок 1</b>
+            <span id="duelScore1">0 / 0</span>
+          </div>
+          <div class="duel-vs">VS</div>
+          <div class="duel-player" id="duelCard2">
+            <b id="duelName2">Игрок 2</b>
+            <span id="duelScore2">0 / 0</span>
+          </div>
+        </div>
+        <div class="duel-turn" id="duelTurn">Ход: Игрок 1</div>
+        <div class="duel-timer"><i id="duelTimerBar"></i></div>
+        <div class="hud" style="margin-top:12px">
+          <span>Раунд <b id="duelNum">1</b>/<b id="duelTotal">10</b></span>
+          <span>Секунд <b id="duelTimerText">20</b></span>
+        </div>
+        <div class="quiz-img" id="duelImg">🔫</div>
+        <h2 class="quiz-text" id="duelText"></h2>
+        <div class="quiz-opts" id="duelOpts"></div>
+      </div>
+      <div id="duelResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-daily" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>🎯 Ежедневный вызов</h2>
+      </div>
+      <div id="dailyStart" class="panel" style="margin-top:12px">
+        <div class="daily-card">
+          <div class="daily-card__icon" id="dailyIcon">🚀</div>
+          <div style="flex:1;min-width:0">
+            <div class="daily-badge">ОБРАЗЕЦ ДНЯ · <span id="dailyDate">—</span></div>
+            <h3 style="margin:6px 0 4px" id="dailyName">—</h3>
+            <p class="muted small" id="dailyShort">—</p>
+          </div>
+        </div>
+        <p id="dailyStatus" class="muted small" style="margin-top:12px"></p>
+        <button class="btn btn--primary" id="dailyStartBtn" type="button" style="width:100%;margin-top:10px">
+          Пройти вызов дня
+        </button>
+      </div>
+      <div id="dailyGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Вопрос <b id="dailyNum">1</b>/<b id="dailyTotal">3</b></span>
+          <span>Счёт <b id="dailyScore">0</b></span>
+        </div>
+        <div class="quiz-img" id="dailyImg">🚀</div>
+        <h2 class="quiz-text" id="dailyText"></h2>
+        <div class="quiz-opts" id="dailyOpts"></div>
+      </div>
+      <div id="dailyResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-tf" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>🤔 Правда или миф</h2>
+      </div>
+      <div id="tfStart" class="panel" style="margin-top:12px">
+        <p>10 утверждений о вооружении. Ответьте: правда или миф. +10 XP за верный ответ.</p>
+        <button id="tfStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="tfGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Вопрос <b id="tfNum">1</b>/<b id="tfTotal">10</b></span>
+          <span>Счёт <b id="tfScore">0</b></span>
+        </div>
+        <div class="tf-text" id="tfText"></div>
+        <div class="quiz-opts" id="tfOpts">
+          <button class="opt" type="button" onclick="TF.answer(true, this)">✅ Правда</button>
+          <button class="opt" type="button" onclick="TF.answer(false, this)">❌ Миф</button>
+        </div>
+      </div>
+      <div id="tfResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-react" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>⏱️ Реакция</h2>
+      </div>
+      <div id="reactStart" class="panel" style="margin-top:12px">
+        <p>10 вопросов. На каждый — <b>2 секунды</b>. Успей ответить! +15 XP за верный.</p>
+        <button id="reactStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="reactGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Вопрос <b id="reactNum">1</b>/<b id="reactTotal">10</b></span>
+          <span>Счёт <b id="reactScore">0</b></span>
+        </div>
+        <div class="react-timer"><i id="reactTimerBar"></i></div>
+        <div class="react-time-text" id="reactTimerText">2.0 с</div>
+        <div class="quiz-img" id="reactImg">🔫</div>
+        <h2 class="quiz-text" id="reactText"></h2>
+        <div class="quiz-opts" id="reactOpts"></div>
+      </div>
+      <div id="reactResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-assembly" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>🔧 Собери оружие</h2>
+      </div>
+      <div id="assemblyStart" class="panel" style="margin-top:12px">
+        <p>Для каждого образца отметьте 4 правильные детали из 10. Без ошибок — +25 XP.</p>
+        <button id="assemblyStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="assemblyGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Образец <b id="assemblyNum">1</b>/<b id="assemblyTotal">4</b></span>
+          <span>Собрано <b id="assemblyScore">0</b></span>
+        </div>
+        <h3 id="assemblyTitle" style="margin:8px 0 4px"></h3>
+        <p class="muted small" id="assemblyHint"></p>
+        <div class="assembly-parts" id="assemblyParts"></div>
+        <div class="assembly-footer">
+          <span>Выбрано: <b id="assemblyPick">0 / 4</b></span>
+          <button id="assemblySubmit" class="btn btn--primary" type="button" disabled>Проверить</button>
+        </div>
+      </div>
+      <div id="assemblyResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-tactic" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>🗺️ Тактическая задача</h2>
+      </div>
+      <div id="tacticStart" class="panel" style="margin-top:12px">
+        <p>Расставьте технику по зонам. Сначала тапните на технику, потом на зону.</p>
+        <button id="tacticStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="tacticGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Сценарий <b id="tacticNum">1</b>/<b id="tacticTotal">2</b></span>
+          <span>Счёт <b id="tacticScore">0</b></span>
+        </div>
+        <div class="tactic-task" id="tacticTask"></div>
+        <div class="tactic-zones" id="tacticZones"></div>
+        <div class="tactic-units" id="tacticUnits"></div>
+      </div>
+      <div id="tacticResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+
+    <div id="game-word" class="game-panel" hidden>
+      <div class="game-panel__head">
+        <button class="btn btn--ghost" data-back type="button">← Назад</button>
+        <h2>🔤 Военный кроссворд</h2>
+      </div>
+      <div id="wordStart" class="panel" style="margin-top:12px">
+        <p>Соберите слово по описанию. 8 слов, +20 XP за каждое разгаданное.</p>
+        <button id="wordStartBtn" class="btn btn--primary" type="button">Начать</button>
+      </div>
+      <div id="wordGame" hidden style="margin-top:12px">
+        <div class="hud">
+          <span>Слово <b id="wordNum">1</b>/<b id="wordTotal">8</b></span>
+          <span>Счёт <b id="wordScore">0</b></span>
+        </div>
+        <p class="word-hint" id="wordHint"></p>
+        <div class="word-slots" id="wordSlots"></div>
+        <div class="word-tiles" id="wordTiles"></div>
+      </div>
+      <div id="wordResult" class="panel" hidden style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-rating" hidden>
+    <h1>Рейтинг группы</h1>
+    <p class="muted">Общий рейтинг по опыту (XP). Обновляется в реальном времени.</p>
+    <div class="panel" id="leaderboard"></div>
+  </section>
+
+  <section class="view" id="view-profile" hidden>
+    <h1>Профиль</h1>
+
+    <div id="authBox" class="panel">
+      <h2>Вход в систему</h2>
+      <div class="switch">
+        <button class="switch__btn active" data-form="qr" type="button">По QR</button>
+        <button class="switch__btn" data-form="nick" type="button">Позывной</button>
+      </div>
+
+      <div id="formQr" class="form">
+        <p class="muted small">Отсканируйте QR-код с карточки — вы автоматически войдёте в профиль.
+          Либо введите код карточки вручную (например, <code>AK12</code>).</p>
+        <input class="input" id="qrCode" placeholder="Код карточки (AK12, T90M…)" autocapitalize="characters">
+        <button class="btn btn--primary" id="qrEnterBtn" type="button">Войти по карточке</button>
+      </div>
+
+      <div id="formNick" class="form" hidden>
+        <p class="muted small">Введите позывной и кодовое слово группы.</p>
+        <input class="input" id="nickInput" placeholder="Позывной (мин. 3 символа)" autocomplete="username">
+        <input class="input" id="wordInput" placeholder="Кодовое слово" autocomplete="off">
+        <button class="btn btn--primary" id="nickEnterBtn" type="button">Войти</button>
+        <p class="muted small">Кодовое слово: <b>Плехановка-2026</b></p>
+      </div>
+    </div>
+
+    <div id="profileBox" hidden>
+      <div class="panel">
+        <div class="profile-head">
+          <div class="avatar" id="pAvatar">👤</div>
+          <div style="flex:1;min-width:0">
+            <div class="profile-name" id="pName">—</div>
+            <div class="epaulette" id="pEpaulette"></div>
+            <div class="muted small" id="pSince"></div>
+          </div>
+        </div>
+
+        <div class="xp-wrap">
+          <div class="sightbar"><i id="xpFill"></i></div>
+          <div class="xp-info">
+            <span>XP <b id="pXp">0</b></span>
+            <span id="xpNext" class="muted small"></span>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b id="sQuiz">0</b><span>лучший блиц</span></div>
+          <div class="stat"><b id="sMatch">—</b><span>лучшие пары</span></div>
+          <div class="stat"><b id="sGames">0</b><span>игр</span></div>
+          <div class="stat"><b id="sStreak">0</b><span>дней серии</span></div>
+        </div>
+
+        <div class="row">
+          <button class="btn" id="shareProfileBtn" type="button">📤 Поделиться</button>
+          <button class="btn" id="avatarBtn" type="button">🎭 Аватар</button>
+          <button class="btn" id="logoutBtn" type="button">Выйти</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Достижения</h2>
+        <div class="badges" id="badgesBox"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Обмен карточками</h2>
+        <p class="muted small">Вставьте код (<code>ak12</code>) или ссылку
+          (<code>…#card=su57</code>), чтобы добавить карточку в коллекцию.</p>
+        <div class="row">
+          <input class="input" id="exchangeInput" placeholder="Код или ссылка" style="flex:1">
+          <button class="btn btn--primary" id="exchangeBtn" type="button">Добавить</button>
+        </div>
+      </div>
+
+      <h2 class="section-title"><span class="sec-mark">▸</span> Моя коллекция</h2>
+      <div class="grid" id="collectionGrid"></div>
+
+      <div class="panel" style="text-align:center">
+        <p class="muted small" style="margin-top:0">Панель преподавателя и админ-доступ</p>
+        <a href="admin.html" class="admin-link">🔐 Открыть админ-панель</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-teacher" hidden>
+    <div class="teacher-head">
+      <h1>Панель преподавателя</h1>
+      <a href="#home" class="btn btn--ghost">← На главную</a>
+    </div>
+    <p class="muted">Сводная статистика по всем игрокам (данные из облака).</p>
+
+    <div class="teacher-cards" id="teacherStats"></div>
+
+    <h2 class="section-title"><span class="sec-mark">▸</span> Список игроков</h2>
+    <div class="panel" id="teacherPlayers"></div>
+
+    <h2 class="section-title"><span class="sec-mark">▸</span> Топ сложных образцов</h2>
+    <div class="panel" id="teacherHard"></div>
+  </section>
+
+  <section class="view" id="view-help" hidden>
+    <div class="teacher-head">
+      <h1>Помощь</h1>
+      <a href="#home" class="btn btn--ghost">← На главную</a>
+    </div>
+
+    <div class="panel">
+      <h2>Как играть</h2>
+      <p><b>Арсенал</b> — справочник по 25 образцам вооружения и техники ВС РФ.
+        Открывайте карточки, читайте ТТХ, добавляйте в избранное и коллекцию.</p>
+      <p><b>Полигон</b> — одиннадцать игр и тренажёров: «Найди пару», «Блиц-опрос», «Силуэты»,
+        «Найди лишнее», «Дуэль» (1×1 на одном устройстве), «Ежедневный вызов»,
+        «Правда или миф», «Реакция», «Собери оружие», «Тактическая задача», «Военный кроссворд».</p>
+      <p><b>Профиль</b> — звание, прогресс, достижения и коллекция. Войдите по QR-коду
+        с карточки или через позывной и кодовое слово.</p>
+      <p><b>Рейтинг</b> — общий для всей группы, обновляется в реальном времени.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Вход в систему</h2>
+      <p>Два способа:</p>
+      <ol>
+        <li><b>По QR-коду карточки.</b> Сканируйте QR — сайт откроется, попросит позывной
+          и автоматически создаст профиль.</li>
+        <li><b>По позывному и кодовому слову.</b> Профиль → Позывной. Кодовое слово группы —
+          <code>Плехановка-2026</code>.</li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <h2>Достижения</h2>
+      <p>12 наград: «Снайпер», «Танкист», «Лётчик», «Моряк», «Эрудит», «Коллекционер»,
+        «Неделя», «Мастер», «Оружейник», «Аналитик», «Стратег», «Кроссвордист».</p>
+    </div>
+
+    <div class="panel">
+      <h2>Доступность</h2>
+      <p>Кнопка <b>A+</b> в шапке включает крупный шрифт и повышенную контрастность.
+        Состояние сохраняется между сессиями.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Панель преподавателя и админка</h2>
+      <p>Админ-панель доступна по <a href="admin.html" class="admin-link">ссылке</a>
+        (пароль по умолчанию — <code>admin2026</code>). Оттуда можно редактировать образцы,
+        вопросы, достижения, генерировать QR-коды и делать бэкап.</p>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal__box" id="modalBox"></div>
+</div>
+
+<div class="modal" id="welcomeModal" hidden>
+  <div class="modal__box">
+    <h2>👋 Добро пожаловать!</h2>
+    <p>Вы отсканировали карточку <b id="wCardName">—</b>.</p>
+    <p class="muted small">Введите позывной — он будет вашим именем в рейтинге.</p>
+    <input class="input" id="wNick" placeholder="Ваш позывной" style="margin:10px 0">
+    <button class="btn btn--primary" id="wStartBtn" type="button" style="width:100%">Продолжить</button>
+  </div>
+</div>
+
+<div class="modal" id="avatarModal" hidden>
+  <div class="modal__box">
+    <h2>Выбор аватара</h2>
+
+    <div class="avatar-current" id="avatarCurrent"></div>
+    <div class="avatar-picker" id="avatarPicker"></div>
+
+    <div class="avatar-upload">
+      <input type="file" id="avatarFileInput" accept="image/*" hidden>
+      <button class="btn btn--primary" id="avatarUploadBtn" type="button">📷 Загрузить своё фото</button>
+      <button class="btn" id="avatarResetBtn" type="button" hidden>↺ Вернуть эмодзи</button>
+      <p class="muted small" style="margin:8px 0 0">JPG, PNG или WebP. Картинка автоматически
+        ужимается до 240×240 и хранится только в вашем браузере.</p>
+    </div>
+
+    <button class="btn" id="avatarClose" type="button" style="width:100%;margin-top:14px">Закрыть</button>
+  </div>
+</div>
+
+<div class="modal" id="shareModal" hidden>
+  <div class="modal__box">
+    <h2>Ваш результат</h2>
+    <div class="share-preview" id="sharePreview"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn btn--primary" id="shareDownloadBtn" type="button">⬇️ Скачать PNG</button>
+      <button class="btn" id="shareNativeBtn" type="button">📤 Поделиться</button>
+      <button class="btn" id="shareCopyBtn" type="button">📋 Текст</button>
+    </div>
+    <button class="btn btn--ghost" id="shareCloseBtn" type="button" style="width:100%;margin-top:8px">Закрыть</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/games-extra.js"></script>
+<script type="module" src="js/cloud.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

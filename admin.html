@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Админ-панель «Оружие Победы»">
+<meta name="theme-color" content="#0d0f0c">
+<meta name="robots" content="noindex, nofollow">
+<title>Админ-панель · Оружие Победы</title>
+
+<link rel="icon" href="images/icon.svg" type="image/svg+xml">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin">
+
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="index.html" class="logo">
+      <span class="logo__mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/>
+        </svg>
+      </span>
+      <span class="logo__text">Админ-панель<small>Оружие Победы · управление контентом</small></span>
+    </a>
+    <div class="header__actions">
+      <button id="a11yBtn" class="icon-btn" aria-label="Крупный шрифт" title="Крупный шрифт">A+</button>
+      <button id="bgBtn" class="icon-btn" aria-label="Анимированный фон" title="Фон">✨</button>
+      <button id="soundBtn" class="icon-btn" aria-label="Звук" title="Звук">🔊</button>
+      <button id="themeBtn" class="icon-btn" aria-label="Тема" title="Тема">☀️</button>
+      <a href="index.html" class="icon-btn" aria-label="На главную" title="На главную">⌂</a>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <h1>Управление контентом</h1>
+  <p class="muted">Изменения сохраняются в localStorage браузера и сразу применяются на основном сайте.</p>
+
+  <div id="adminLogin" class="panel" style="max-width:480px;margin:20px auto">
+    <h2>Вход</h2>
+    <p class="muted small">Введите пароль администратора. По умолчанию: <code>admin2026</code>
+      (меняется в <code>js/utils.js</code>, константа <code>ADMIN_PASSWORD</code>).</p>
+    <input type="password" id="adminPwd" class="input" placeholder="Пароль" autocomplete="off">
+    <button id="adminLoginBtn" class="btn btn--primary" type="button"
+      style="width:100%;margin-top:10px">Войти</button>
+    <div id="adminLoginError" class="muted small" style="margin-top:10px;color:var(--danger)"></div>
+  </div>
+
+  <div id="adminPanel" hidden>
+    <div class="switch admin-tabs" id="adminTabs">
+      <button class="switch__btn active" data-tab="weapons" type="button">Вооружение</button>
+      <button class="switch__btn" data-tab="quiz" type="button">Вопросы</button>
+      <button class="switch__btn" data-tab="achievements" type="button">Достижения</button>
+      <button class="switch__btn" data-tab="users" type="button">Игроки</button>
+      <button class="switch__btn" data-tab="qr" type="button">QR-коды</button>
+      <button class="switch__btn" data-tab="backup" type="button">Бэкап</button>
+    </div>
+
+    <div id="adminTab-weapons" class="admin-tab">
+      <div class="row" style="margin-bottom:12px">
+        <button id="adminAddWeapon" class="btn btn--primary" type="button">＋ Добавить образец</button>
+        <button id="adminResetWeapons" class="btn" type="button">Сбросить к заводским</button>
+        <button id="adminLogout" class="btn" type="button">Выйти</button>
+      </div>
+      <div id="adminWeaponsList"></div>
+    </div>
+
+    <div id="adminTab-quiz" class="admin-tab" hidden>
+      <div class="row" style="margin-bottom:12px">
+        <button id="adminAddQuiz" class="btn btn--primary" type="button">＋ Добавить вопрос</button>
+        <button id="adminResetQuiz" class="btn" type="button">Сбросить к заводским</button>
+      </div>
+      <div id="adminQuizList"></div>
+    </div>
+
+    <div id="adminTab-achievements" class="admin-tab" hidden>
+      <div class="row" style="margin-bottom:12px">
+        <button id="adminAddAch" class="btn btn--primary" type="button">＋ Добавить достижение</button>
+        <button id="adminResetAch" class="btn" type="button">Сбросить к заводским</button>
+      </div>
+      <div id="adminAchList"></div>
+    </div>
+
+    <div id="adminTab-users" class="admin-tab" hidden>
+      <div id="adminUsersList"></div>
+    </div>
+
+    <div id="adminTab-qr" class="admin-tab" hidden>
+      <div class="panel">
+        <h2>Генератор QR-кодов</h2>
+        <p class="muted small">Введите URL или код карточки. Если ввели ID (например, <code>ak12</code>),
+          будет сформирована ссылка на главную с якорем <code>#card=ak12</code>.</p>
+        <div class="admin-field">
+          <span class="admin-field__label">Что закодировать</span>
+          <input class="input" id="qrInput" placeholder="Например: ak12 или https://site.ru/…">
+        </div>
+        <div class="admin-field">
+          <span class="admin-field__label">Быстрый выбор образца</span>
+          <select class="input" id="qrWeapon"></select>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn btn--primary" id="qrGenerateBtn" type="button">Сгенерировать</button>
+          <button class="btn" id="qrDownloadBtn" type="button" disabled>⬇️ Скачать PNG</button>
+        </div>
+        <div id="qrOutput" style="margin-top:16px;display:flex;justify-content:center"></div>
+      </div>
+    </div>
+
+    <div id="adminTab-backup" class="admin-tab" hidden>
+      <div class="panel">
+        <h2>Экспорт данных</h2>
+        <p class="muted small">Скачайте JSON со всем: пользователи, прогресс, изменённые образцы,
+          вопросы, достижения, тема, звук, фон. Сохраняйте файл в надёжном месте.</p>
+        <button class="btn btn--primary" id="exportBtn" type="button">⬇️ Скачать бэкап</button>
+      </div>
+      <div class="panel">
+        <h2>Импорт данных</h2>
+        <p class="muted small">Загрузите ранее сохранённый JSON. Текущие данные будут
+          <b>полностью заменены</b>.</p>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+        <button class="btn" id="importBtn" type="button">📁 Выбрать файл</button>
+        <span class="muted small" id="importStatus" style="margin-left:10px"></span>
+      </div>
+      <div class="panel">
+        <h2>Опасная зона</h2>
+        <p class="muted small">Полный сброс всех данных. Необратимо.</p>
+        <button class="btn" id="factoryResetBtn" type="button"
+          style="color:var(--danger);border-color:var(--danger)">🔥 Полный сброс</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal" id="adminEditModal" hidden>
+  <div class="modal__box">
+    <h2 id="adminEditTitle">Редактирование</h2>
+    <div id="adminEditForm"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="adminSaveBtn" class="btn btn--primary" type="button">Сохранить</button>
+      <button id="adminCancelBtn" class="btn" type="button">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script type="module" src="js/cloud.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

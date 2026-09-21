@@ -1,0 +1,15 @@
+{
+  "name": "Оружие Победы — ВС РФ",
+  "short_name": "Оружие Победы",
+  "description": "Интерактивная платформа по ТТХ вооружения ВС РФ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d0f0c",
+  "theme_color": "#0d0f0c",
+  "lang": "ru",
+  "icons": [
+    { "src": "images/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
