@@ -1,9 +1,10 @@
 /* =========================================================
    Service Worker — «Оружие Победы»
    Cache-first с подмешиванием свежих данных из сети.
-   При изменении файлов — поднять CACHE (v6 → v7 → ...).
+   ВАЖНО: cloud.js и Firebase SDK идут в обход кэша —
+   иначе браузер отказывается исполнять ES-модули.
    ========================================================= */
-const CACHE = 'ovp-pobeda-v6';
+const CACHE = 'ovp-pobeda-v7';
 
 const ASSETS = [
   './',
@@ -17,6 +18,7 @@ const ASSETS = [
   './js/admin.js',
   './manifest.json',
   './images/icon.svg'
+  // ВНИМАНИЕ: cloud.js здесь НЕ указан — он должен всегда тянуться из сети
 ];
 
 self.addEventListener('install', event => {
@@ -42,6 +44,18 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
+  const url = new URL(req.url);
+
+  /* === 1. Пропускаем всё внешнее (Firebase SDK, Google Fonts и т.п.) ===
+     Иначе SW закэширует opaque-ответы и браузер откажется
+     исполнять их как ES-модули. */
+  if (url.origin !== location.origin) return;
+
+  /* === 2. cloud.js — всегда из сети, не кэшируем ===
+     Это ES-модуль с импортами. Если отдать из кэша — упадёт. */
+  if (url.pathname.endsWith('/js/cloud.js')) return;
+
+  /* === 3. Навигация (открытие страниц) === */
   if (req.mode === 'navigate'){
     event.respondWith(
       fetch(req)
@@ -55,11 +69,13 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  /* === 4. Остальное: cache-first, потом сеть === */
   event.respondWith(
     caches.match(req).then(cached => {
       if (cached) return cached;
       return fetch(req).then(res => {
-        if (res && (res.status === 200 || res.type === 'opaque')){
+        // Кэшируем только успешные same-origin ответы (не opaque!)
+        if (res && res.status === 200 && res.type === 'basic'){
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
         }
