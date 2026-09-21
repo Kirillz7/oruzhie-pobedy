@@ -3,12 +3,13 @@
    Cache-first с подмешиванием свежих данных из сети.
 
    ВАЖНО:
-   - cloud.js НЕ кэшируется — он всегда тянется из сети.
-   - Внешние скрипты (Firebase SDK, Google Fonts) не перехватываются.
+   - cloud.js НЕ кэшируется — всегда тянется из сети.
+   - Внешние скрипты (Firebase SDK, Google Fonts, QR-API)
+     не перехватываются.
    - В кэш попадают только same-origin ответы типа «basic».
-   При изменении файлов — поднять CACHE (v8 → v9 → ...).
+   При изменении файлов — поднять CACHE (v10 → v11 → ...).
    ========================================================= */
-const CACHE = 'ovp-pobeda-v8';
+const CACHE = 'ovp-pobeda-v10';
 
 const ASSETS = [
   './',
@@ -22,8 +23,8 @@ const ASSETS = [
   './js/admin.js',
   './manifest.json',
   './images/icon.svg'
-  // ВНИМАНИЕ: './js/cloud.js' здесь НЕ указан — модуль должен
-  // всегда тянуться из сети, иначе Firebase не заработает.
+  // cloud.js — НЕ в кэше, модуль всегда из сети.
+  // Внешние скрипты (Firebase SDK) — тоже мимо кэша.
 ];
 
 self.addEventListener('install', event => {
@@ -51,11 +52,11 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(req.url);
 
-  /* 1. Пропускаем всё внешнее (Firebase SDK, Google Fonts).
-     Иначе SW закэширует opaque-ответы и модули не загрузятся. */
+  /* 1. Внешние домены пропускаем (Firebase SDK, Google Fonts,
+        api.qrserver.com). Иначе SW может закэшировать opaque-ответы. */
   if (url.origin !== location.origin) return;
 
-  /* 2. cloud.js — всегда из сети, не кэшируем. */
+  /* 2. cloud.js — всегда из сети. */
   if (url.pathname.endsWith('/js/cloud.js')) return;
 
   /* 3. Навигация (открытие страниц). */
