@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+<script src="js/qrcode.min.js" defer></script>
+
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="admin">
@@ -97,7 +99,8 @@
       <div class="panel">
         <h2>Генератор QR-кодов</h2>
         <p class="muted small">Введите URL или код карточки. Если ввели ID (например, <code>ak12</code>),
-          будет сформирована ссылка на главную с якорем <code>#card=ak12</code>.</p>
+          будет сформирована ссылка на главную с якорем <code>#card=ak12</code>.
+          QR-код генерируется локально, интернет не нужен.</p>
         <div class="admin-field">
           <span class="admin-field__label">Что закодировать</span>
           <input class="input" id="qrInput" placeholder="Например: ak12 или https://site.ru/…">
