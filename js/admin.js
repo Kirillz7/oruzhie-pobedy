@@ -1,14 +1,13 @@
 /* =========================================================
    ЛОГИКА admin.html
    Управление: вооружение, вопросы, достижения, игроки,
-   QR-генератор (через публичный API), бэкап.
+   QR-генератор (локальная библиотека qrcode.min.js), бэкап.
    ========================================================= */
 
 const Admin = {
   editingType: null,
   editingIndex: -1,
   editingData: null,
-  currentQrUrl: null,
 
   authed(){ return sessionStorage.getItem('ovp_admin') === '1'; },
   login(pwd){
@@ -394,9 +393,7 @@ const Admin = {
     toast('Сохранено');
   },
 
-  /* ---------- QR-генератор (через публичный API) ----------
-     Использует api.qrserver.com — не требует библиотек,
-     работает в любой сети и офлайн-PWA. */
+  /* ---------- QR-генератор (локальный, через qrcode.min.js) ---------- */
   renderQrTab(){
     const sel = document.getElementById('qrWeapon');
     if (!sel.options.length){
@@ -432,52 +429,62 @@ const Admin = {
         url = base + '#card=' + raw.toLowerCase();
       }
 
-      // Публичный QR-API: отдаёт картинку PNG
-      const apiUrl = 'https://api.qrserver.com/v1/create-qr-code/'
-        + '?size=400x400&margin=10&data=' + encodeURIComponent(url);
-
       out.innerHTML = '';
-      const img = document.createElement('img');
-      img.alt = 'QR-код';
-      img.style.maxWidth = '320px';
-      img.style.width = '100%';
-      img.style.borderRadius = '8px';
-      img.style.background = '#ffffff';
-      img.style.padding = '8px';
-      img.onload = () => {
-        this.currentQrUrl = apiUrl;
+
+      if (typeof QRCode === 'undefined'){
+        toast('Библиотека QR не загружена. Проверьте js/qrcode.min.js');
+        return;
+      }
+
+      // Контейнер для QR-кода
+      const holder = document.createElement('div');
+      holder.style.background = '#ffffff';
+      holder.style.padding = '12px';
+      holder.style.borderRadius = '12px';
+      holder.style.display = 'inline-block';
+      out.appendChild(holder);
+
+      // Генерируем QR локально, без интернета
+      try {
+        new QRCode(holder, {
+          text: url,
+          width: 320,
+          height: 320,
+          colorDark: '#0d0f0c',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
         dlBtn.disabled = false;
         toast('QR готов');
-      };
-      img.onerror = () => {
+      } catch (e){
+        console.error(e);
         out.innerHTML = '';
-        toast('Не удалось сгенерировать QR — проверьте интернет');
-      };
-      img.src = apiUrl;
-      out.appendChild(img);
+        toast('Не удалось создать QR-код');
+      }
     };
 
-    dlBtn.onclick = async () => {
-      if (!this.currentQrUrl) return;
-      dlBtn.disabled = true;
-      const oldText = dlBtn.textContent;
-      dlBtn.textContent = 'Скачивание…';
-      try {
-        const res = await fetch(this.currentQrUrl);
-        const blob = await res.blob();
+    dlBtn.onclick = () => {
+      // Ищем canvas внутри holder
+      const canvas = document.querySelector('#qrOutput canvas');
+      if (canvas){
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
+        link.href = canvas.toDataURL('image/png');
         link.download = 'qr-' + Date.now() + '.png';
         link.click();
-        URL.revokeObjectURL(link.href);
         toast('QR сохранён');
-      } catch (e){
-        toast('Не удалось скачать PNG');
-        console.error(e);
-      } finally {
-        dlBtn.disabled = false;
-        dlBtn.textContent = oldText;
+        return;
       }
+      // Fallback: некоторые версии qrcodejs делают img
+      const img = document.querySelector('#qrOutput img');
+      if (img && img.src){
+        const link = document.createElement('a');
+        link.href = img.src;
+        link.download = 'qr-' + Date.now() + '.png';
+        link.click();
+        toast('QR сохранён');
+        return;
+      }
+      toast('Сначала сгенерируйте QR');
     };
   },
 
