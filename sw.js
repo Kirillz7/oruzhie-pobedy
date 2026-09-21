@@ -9,7 +9,7 @@
    - В кэш попадают только same-origin ответы типа «basic».
    При изменении файлов — поднять CACHE (v10 → v11 → ...).
    ========================================================= */
-const CACHE = 'ovp-pobeda-v10';
+const CACHE = 'ovp-pobeda-v11';
 
 const ASSETS = [
   './',
@@ -21,10 +21,9 @@ const ASSETS = [
   './js/games-extra.js',
   './js/app.js',
   './js/admin.js',
+  './js/qrcode.min.js',     // ← новая строка
   './manifest.json',
   './images/icon.svg'
-  // cloud.js — НЕ в кэше, модуль всегда из сети.
-  // Внешние скрипты (Firebase SDK) — тоже мимо кэша.
 ];
 
 self.addEventListener('install', event => {
