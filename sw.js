@@ -10,7 +10,7 @@
    При изменении файлов — поднять CACHE (v12 → v13 → ...)
    и обновить APP_VERSION в js/updates.js.
    ========================================================= */
-const CACHE = 'ovp-pobeda-v12';
+const CACHE = 'ovp-pobeda-v13';
 
 const ASSETS = [
   './',
