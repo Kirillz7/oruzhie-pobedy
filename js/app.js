@@ -374,7 +374,7 @@ function backToHub(){
 }
 
 /* =========================================================
-   ИГРА «НАЙДИ ПАРУ»
+   ИГРА «НАЙДИ ПАРУ» — с фото на обороте
    ========================================================= */
 const Match = {
   first:null, lock:false, moves:0, pairs:0, total:6, sec:0, timer:null, started:false,
@@ -412,8 +412,25 @@ const Match = {
       const inner = el('div','mcard__inner');
       const front = el('div','mcard__face mcard__front','★');
       const back  = el('div','mcard__face mcard__back');
-      back.appendChild(el('div', null, w.emoji));
-      back.appendChild(el('small', null, w.name));
+
+      // Фото на обороте, если есть
+      const src = weaponImageSrc(w);
+      if (src){
+        const img = el('img');
+        img.src = src;
+        img.alt = w.name;
+        img.loading = 'lazy';
+        img.onerror = () => {
+          img.remove();
+          back.appendChild(el('div','mcard__emoji', w.emoji));
+        };
+        back.appendChild(img);
+        back.appendChild(el('small', null, w.name));
+      } else {
+        back.appendChild(el('div','mcard__emoji', w.emoji));
+        back.appendChild(el('small', null, w.name));
+      }
+
       inner.append(front, back); btn.appendChild(inner);
       btn.addEventListener('click', () => this.flip(btn, c));
       board.appendChild(btn);
@@ -698,7 +715,7 @@ const Sil = {
 };
 
 /* =========================================================
-   ИГРА «НАЙДИ ЛИШНЕЕ»
+   ИГРА «НАЙДИ ЛИШНЕЕ» — с фото на карточках
    ========================================================= */
 const Odd = {
   list:[], idx:0, score:0, locked:false,
@@ -733,9 +750,28 @@ const Odd = {
     document.getElementById('oddNum').textContent = this.idx + 1;
     document.getElementById('oddScore').textContent = this.score;
     const grid = document.getElementById('oddGrid'); grid.innerHTML = '';
+
     r.items.forEach(w => {
       const card = el('button','odd-card'); card.type = 'button';
-      card.appendChild(el('div','odd-card__icon', w.emoji));
+
+      // Медиа: фото, если есть, иначе эмодзи
+      const media = el('div','odd-card__media');
+      const src = weaponImageSrc(w);
+      if (src){
+        const img = el('img');
+        img.src = src;
+        img.alt = w.name;
+        img.loading = 'lazy';
+        img.onerror = () => {
+          img.remove();
+          media.textContent = w.emoji;
+        };
+        media.appendChild(img);
+      } else {
+        media.textContent = w.emoji;
+      }
+
+      card.appendChild(media);
       card.appendChild(el('div','odd-card__name', w.name));
       card.onclick = () => this.answer(w.id, card);
       grid.appendChild(card);
@@ -1285,22 +1321,29 @@ function renderRating(){
     });
   };
 
-  // Пробуем облако
+  const localRows = () => {
+    const all = Users.all();
+    return Object.entries(all).map(([nick, u]) => ({
+      nick, xp: u.xp || 0,
+      rank: Rank.current(u.xp || 0).name,
+      avatar: u.avatar || '🎖️'
+    })).sort((a, b) => b.xp - a.xp);
+  };
+
   if (window.Cloud && Cloud.ready){
-    Cloud.watchLeaderboard(render);
+    Cloud.watchLeaderboard(rows => {
+      if (rows.length) render(rows);
+      else render(localRows());
+    });
+
+    const d = Users.data();
+    if (d) Cloud.pushScore(Users.current(), d.xp || 0, d.stats, Rank.current(d.xp || 0).name);
     return;
   }
 
-  // Если Cloud ещё не готов — показываем локальные данные
-  const all = Users.all();
-  const localRows = Object.entries(all).map(([nick, u]) => ({
-    nick, xp: u.xp || 0, rank: Rank.current(u.xp || 0).name, avatar: u.avatar || '🎖️'
-  })).sort((a, b) => b.xp - a.xp);
-  render(localRows);
-
-  // И подписываемся на облако, когда оно будет готово
+  render(localRows());
   if (window.Cloud){
-    Cloud.onReady(() => Cloud.watchLeaderboard(render));
+    Cloud.onReady(() => renderRating());
   }
 }
 
@@ -1726,7 +1769,6 @@ function initCloud(){
       if (d) Cloud.pushScore(Users.current(), d.xp || 0, d.stats, Rank.current(d.xp || 0).name);
     });
   } else {
-    // cloud.js — модуль, он может выполниться чуть позже обычных скриптов
     setTimeout(initCloud, 200);
   }
 }
