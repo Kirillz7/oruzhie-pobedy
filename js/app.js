@@ -3,6 +3,7 @@
    Дополнительные игры (TF, React, Assembly, Tactic, WordGame)
    определены в js/games-extra.js и подключаются до этого файла.
    Синхронизация рейтинга — через window.Cloud (Firebase).
+   Система обновлений — в js/updates.js.
    ========================================================= */
 
 /* ---------- Параллакс героя ---------- */
@@ -374,7 +375,7 @@ function backToHub(){
 }
 
 /* =========================================================
-   ИГРА «НАЙДИ ПАРУ» — с фото на обороте
+   ИГРА «НАЙДИ ПАРУ»
    ========================================================= */
 const Match = {
   first:null, lock:false, moves:0, pairs:0, total:6, sec:0, timer:null, started:false,
@@ -413,7 +414,6 @@ const Match = {
       const front = el('div','mcard__face mcard__front','★');
       const back  = el('div','mcard__face mcard__back');
 
-      // Фото на обороте, если есть
       const src = weaponImageSrc(w);
       if (src){
         const img = el('img');
@@ -715,7 +715,7 @@ const Sil = {
 };
 
 /* =========================================================
-   ИГРА «НАЙДИ ЛИШНЕЕ» — с фото на карточках
+   ИГРА «НАЙДИ ЛИШНЕЕ»
    ========================================================= */
 const Odd = {
   list:[], idx:0, score:0, locked:false,
@@ -754,7 +754,6 @@ const Odd = {
     r.items.forEach(w => {
       const card = el('button','odd-card'); card.type = 'button';
 
-      // Медиа: фото, если есть, иначе эмодзи
       const media = el('div','odd-card__media');
       const src = weaponImageSrc(w);
       if (src){
@@ -1783,6 +1782,7 @@ function init(){
   initCatalogFilters();
   bindExchange();
   BG.init();
+  if (typeof initUpdates === 'function') initUpdates();
 
   $$('[data-back]').forEach(b => b.onclick = backToHub);
 
