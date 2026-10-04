@@ -70,8 +70,6 @@ body{
   line-height:1.5;
   padding-bottom:calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px));
   -webkit-tap-highlight-color:transparent;
-
-  /* Живая «туманность» — два мягких радиальных пятна, дрейфуют */
   background-image:
     radial-gradient(ellipse 70% 50% at 15% 0%, rgba(143,167,99,.10), transparent 60%),
     radial-gradient(ellipse 70% 50% at 85% 100%, rgba(139,157,195,.09), transparent 60%);
@@ -80,19 +78,16 @@ body{
   background-attachment: fixed;
   animation: nebulaDrift 40s ease-in-out infinite alternate;
 }
-
 @keyframes nebulaDrift{
   0%   { background-position: 0% 0%,   100% 100%; }
   100% { background-position: 20% 12%, 80% 88%; }
 }
-
 html[data-theme="light"] body{
   background-image:
     radial-gradient(ellipse 70% 50% at 15% 0%, rgba(93,122,58,.08), transparent 60%),
     radial-gradient(ellipse 70% 50% at 85% 100%, rgba(92,109,117,.07), transparent 60%);
 }
 
-/* На admin.html нет нижней табовой навигации */
 body.admin{ padding-bottom:0; }
 
 h1,h2,h3{
@@ -236,7 +231,6 @@ html[data-theme="light"] .tabs{ background:rgba(255,255,255,.94); }
   isolation:isolate;
 }
 
-/* Тонкая фоновая сетка. Лёгкий параллакс из JS */
 .hero__bg{
   position:absolute;
   inset:-20%;
@@ -251,7 +245,6 @@ html[data-theme="light"] .tabs{ background:rgba(255,255,255,.94); }
 
 .hero__inner{ position:relative; z-index:2; }
 
-/* --- Радар --- */
 .hero__radar{
   position:absolute;
   top:50%;
@@ -264,7 +257,6 @@ html[data-theme="light"] .tabs{ background:rgba(255,255,255,.94); }
   opacity:.65;
 }
 
-/* Сетка внутри радара */
 .radar__grid{
   position:absolute; inset:0;
   border-radius:50%;
@@ -276,49 +268,25 @@ html[data-theme="light"] .tabs{ background:rgba(255,255,255,.94); }
           mask-image:radial-gradient(circle, #000 0%, #000 55%, transparent 92%);
 }
 
-/* Концентрические кольца */
 .radar__rings{
   position:absolute; inset:0;
   border-radius:50%;
   background:
-    radial-gradient(circle,
-      transparent calc(20% - 1px),
-      rgba(143,167,99,.35) 20%,
-      transparent calc(20% + 1px)),
-    radial-gradient(circle,
-      transparent calc(40% - 1px),
-      rgba(143,167,99,.28) 40%,
-      transparent calc(40% + 1px)),
-    radial-gradient(circle,
-      transparent calc(60% - 1px),
-      rgba(143,167,99,.22) 60%,
-      transparent calc(60% + 1px)),
-    radial-gradient(circle,
-      transparent calc(80% - 1px),
-      rgba(143,167,99,.18) 80%,
-      transparent calc(80% + 1px)),
-    radial-gradient(circle,
-      transparent calc(99% - 1px),
-      rgba(143,167,99,.30) 100%,
-      transparent 100%);
+    radial-gradient(circle, transparent calc(20% - 1px), rgba(143,167,99,.35) 20%, transparent calc(20% + 1px)),
+    radial-gradient(circle, transparent calc(40% - 1px), rgba(143,167,99,.28) 40%, transparent calc(40% + 1px)),
+    radial-gradient(circle, transparent calc(60% - 1px), rgba(143,167,99,.22) 60%, transparent calc(60% + 1px)),
+    radial-gradient(circle, transparent calc(80% - 1px), rgba(143,167,99,.18) 80%, transparent calc(80% + 1px)),
+    radial-gradient(circle, transparent calc(99% - 1px), rgba(143,167,99,.30) 100%, transparent 100%);
 }
 
-/* Перекрестие */
 .radar__cross{
   position:absolute; inset:0;
   border-radius:50%;
   background:
-    linear-gradient(90deg,
-      transparent calc(50% - .5px),
-      rgba(143,167,99,.28) 50%,
-      transparent calc(50% + .5px)),
-    linear-gradient(0deg,
-      transparent calc(50% - .5px),
-      rgba(143,167,99,.28) 50%,
-      transparent calc(50% + .5px));
+    linear-gradient(90deg, transparent calc(50% - .5px), rgba(143,167,99,.28) 50%, transparent calc(50% + .5px)),
+    linear-gradient(0deg, transparent calc(50% - .5px), rgba(143,167,99,.28) 50%, transparent calc(50% + .5px));
 }
 
-/* Вращающийся сектор-развёртка */
 .radar__sweep{
   position:absolute; inset:0;
   border-radius:50%;
@@ -339,7 +307,6 @@ html[data-theme="light"] .tabs{ background:rgba(255,255,255,.94); }
   to   { transform:rotate(360deg); }
 }
 
-/* Мигающие отметки целей */
 .radar__blip{
   position:absolute;
   top:var(--y);
@@ -364,16 +331,13 @@ html[data-theme="light"] .tabs{ background:rgba(255,255,255,.94); }
   100%     { opacity:0; transform:scale(.3);  }
 }
 
-/* На узких экранах — уменьшаем и сдвигаем вправо, чтобы не мешать тексту */
 @media (max-width:560px){
   .hero__radar{ opacity:.42; right:-30%; }
 }
-/* Ландшафт на телефоне — скрываем радар, чтобы не теснил кнопки */
 @media (max-height:520px) and (orientation:landscape){
   .hero__radar{ display:none; }
 }
 
-/* Текстовые элементы героя */
 .hero__kicker{
   font-family:var(--font-mono);
   font-size:.72rem;
@@ -695,6 +659,20 @@ html[data-theme="light"] .wcard__fav{ background:rgba(255,255,255,.85); }
   background:var(--surface); color:var(--text);
   transform:rotateY(180deg);
   font-size:1.9rem; line-height:1;
+  padding:6px;
+}
+/* новое: фото на обороте */
+.mcard__back img{
+  width:100%;
+  height:70%;
+  object-fit:cover;
+  border-radius:6px;
+  margin-bottom:2px;
+  display:block;
+}
+.mcard__emoji{
+  font-size:2rem;
+  line-height:1;
 }
 .mcard__back small{
   font-size:.6rem; line-height:1.15; color:var(--muted);
@@ -781,16 +759,36 @@ html[data-theme="dark"] .sil-img__icon{ filter:brightness(0) invert(1) contrast(
 /* ---------- «Найди лишнее» ---------- */
 .odd-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
 .odd-card{
-  aspect-ratio:1/1;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  gap:6px;
   border-radius:var(--radius);
   border:2px solid var(--border); background:var(--surface);
   cursor:pointer;
-  font-family:inherit; color:var(--text); padding:12px;
+  font-family:inherit; color:var(--text); padding:10px;
   transition:transform .12s, border-color .15s;
 }
 .odd-card:hover{ border-color:var(--accent); }
 .odd-card:active{ transform:scale(.98); }
+/* новое: медиа-контейнер с фото */
+.odd-card__media{
+  width:100%;
+  aspect-ratio:4/3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(160deg, var(--surface-2), var(--bg-2));
+  border-radius:10px;
+  overflow:hidden;
+  font-size:3rem;
+  line-height:1;
+}
+.odd-card__media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+/* fallback для старой разметки */
 .odd-card__icon{ font-size:3rem; }
 .odd-card__name{
   font-family:var(--font-head); font-weight:600;
@@ -1610,7 +1608,6 @@ body.a11y .tab{ font-size:.75rem; }
 body.a11y .tab span{ font-size:1.4rem; }
 body.a11y .header .logo__text{ font-size:1.1rem; }
 body.a11y .header .logo__text small{ font-size:.75rem; }
-/* Усиливаем контраст границ */
 body.a11y{
   --border:#4a5638;
   --border-2:#5f6e4a;
