@@ -378,7 +378,7 @@
 
   <section class="view" id="view-rating" hidden>
     <h1>Рейтинг группы</h1>
-    <p class="muted">Общий рейтинг по опыту (XP). Обновляется в реальном времени.</p>
+    <p class="muted">Общий рейтинг по опыту (XP). Нажмите на позывной, чтобы открыть профиль.</p>
     <div class="panel" id="leaderboard"></div>
   </section>
 
@@ -496,8 +496,9 @@
         «Найди лишнее», «Дуэль» (1×1 на одном устройстве), «Ежедневный вызов»,
         «Правда или миф», «Реакция», «Собери оружие», «Тактическая задача», «Военный кроссворд».</p>
       <p><b>Профиль</b> — звание, прогресс, достижения и коллекция. Войдите по QR-коду
-        с карточки или через позывной и кодовое слово.</p>
-      <p><b>Рейтинг</b> — общий для всей группы, обновляется в реальном времени.</p>
+        с карточки или через позывной и кодовое слово. Можно заполнить свой профиль —
+        статус, о себе, ВШ и группу.</p>
+      <p><b>Рейтинг</b> — общий для всей группы. Нажмите на позывной, чтобы посмотреть чужой профиль.</p>
     </div>
 
     <div class="panel">
@@ -563,6 +564,48 @@
 
     <button class="btn" id="avatarClose" type="button" style="width:100%;margin-top:14px">Закрыть</button>
   </div>
+</div>
+
+<!-- ================= РЕДАКТОР ПРОФИЛЯ ================= -->
+<div class="modal" id="profileEditorModal" hidden>
+  <div class="modal__box">
+    <h2>✏️ О себе</h2>
+    <p class="muted small">Заполните то, что хотите показать группе. Всё необязательно.</p>
+
+    <div class="form" style="margin-top:14px">
+      <label class="admin-field">
+        <span class="admin-field__label">Статус (короткая фраза)</span>
+        <input class="input" id="pfStatus" maxlength="60" placeholder="Например: курсант ВШКИ">
+      </label>
+      <label class="admin-field">
+        <span class="admin-field__label">О себе</span>
+        <textarea class="input admin-textarea" id="pfBio" maxlength="300"
+          placeholder="Пара слов о себе: увлечения, что нравится в проекте"></textarea>
+      </label>
+      <label class="admin-field">
+        <span class="admin-field__label">День рождения</span>
+        <input class="input" id="pfBirthday" maxlength="30" placeholder="Например: 15 мая">
+      </label>
+      <label class="admin-field">
+        <span class="admin-field__label">ВШ / факультет</span>
+        <input class="input" id="pfFaculty" maxlength="60" placeholder="Например: ВШКИ">
+      </label>
+      <label class="admin-field">
+        <span class="admin-field__label">Группа</span>
+        <input class="input" id="pfGroup" maxlength="30" placeholder="Например: 15.23В-Р1/266">
+      </label>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn btn--primary" id="pfSaveBtn" type="button" style="flex:1">Сохранить</button>
+      <button class="btn" id="pfCancelBtn" type="button" style="flex:1">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ПРОСМОТР ЧУЖОГО ПРОФИЛЯ ================= -->
+<div class="modal" id="profileViewerModal" hidden>
+  <div class="modal__box" id="profileViewerBox"></div>
 </div>
 
 <div class="modal" id="shareModal" hidden>
