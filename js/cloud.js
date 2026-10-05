@@ -46,7 +46,6 @@ const Cloud = {
     else this.callbacks.push(cb);
   },
 
-  /* Записывает весь профиль игрока: xp, ранг, статы, аватар, профиль, достижения */
   async pushScore(nick, xp, stats, rank){
     if (!this.ready || !nick) return false;
     try {
@@ -68,7 +67,6 @@ const Cloud = {
     }
   },
 
-  /* Обновляет только указанные поля, не перезаписывая остальные */
   async pushProfile(nick, fields){
     if (!this.ready || !nick) return false;
     try {
@@ -80,7 +78,6 @@ const Cloud = {
     }
   },
 
-  /* Читает профиль по позывному */
   async getProfile(nick){
     if (!this.ready || !nick) return null;
     try {
@@ -108,6 +105,64 @@ const Cloud = {
     const snap = await this.db.ref('leaderboard').once('value');
     const data = snap.val() || {};
     return Object.values(data).sort((a, b) => (b.xp || 0) - (a.xp || 0));
+  },
+
+  /* Записывает уведомление в Firebase.
+     Структура: notifications/{nick}/{id}: {type, title, text, icon, ts, read} */
+  async pushNotification(nick, payload){
+    if (!this.ready || !nick) return false;
+    try {
+      const id = 'n' + Date.now() + '_' + Math.floor(Math.random() * 1e5);
+      const data = Object.assign({
+        type: 'info',
+        title: 'Уведомление',
+        text: '',
+        icon: '🔔',
+        ts: Date.now(),
+        read: false
+      }, payload || {});
+      await this.db.ref('notifications/' + nick + '/' + id).set(data);
+      return id;
+    } catch (e){
+      console.warn('[Cloud] pushNotification error:', e.message);
+      return false;
+    }
+  },
+
+  watchNotifications(nick, cb){
+    if (!this.ready || !nick) return () => {};
+    const ref = this.db.ref('notifications/' + nick);
+    const handler = ref.on('value', snap => {
+      const data = snap.val() || {};
+      const list = Object.entries(data).map(([id, v]) => Object.assign({ id }, v));
+      list.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      cb(list);
+    });
+    return () => ref.off('value', handler);
+  },
+
+  async markNotificationRead(nick, id){
+    if (!this.ready || !nick || !id) return false;
+    try {
+      await this.db.ref('notifications/' + nick + '/' + id + '/read').set(true);
+      return true;
+    } catch (e){
+      return false;
+    }
+  },
+
+  async markAllNotificationsRead(nick){
+    if (!this.ready || !nick) return false;
+    try {
+      await this.db.ref('notifications/' + nick).once('value').then(snap => {
+        const updates = {};
+        snap.forEach(ch => { updates[ch.key + '/read'] = true; });
+        return this.db.ref('notifications/' + nick).update(updates);
+      });
+      return true;
+    } catch (e){
+      return false;
+    }
   }
 };
 
