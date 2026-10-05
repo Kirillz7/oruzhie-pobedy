@@ -1,7 +1,16 @@
 /* =========================================================
    Service Worker — «Оружие Победы»
+   Cache-first с подмешиванием свежих данных из сети.
+
+   ВАЖНО:
+   - cloud.js НЕ кэшируется — всегда тянется из сети.
+   - updates.js — НЕ кэшируется, чтобы новая версия подхватывалась сразу.
+   - Внешние скрипты (Firebase SDK, Google Fonts) не перехватываются.
+
+   При изменении файлов — поднять CACHE (v19 → v20 → ...)
+   и обновить APP_VERSION в js/updates.js.
    ========================================================= */
-const CACHE = 'ovp-pobeda-v18';
+const CACHE = 'ovp-pobeda-v19';
 
 const ASSETS = [
   './',
@@ -15,7 +24,7 @@ const ASSETS = [
   './js/admin.js',
   './manifest.json',
   './images/icon.svg'
-  // cloud.js — НЕ в кэше, всегда из сети
+  // cloud.js — НЕ в кэше, всегда из сети (ES-модуль)
   // updates.js — НЕ в кэше, всегда из сети
 ];
 
@@ -52,7 +61,7 @@ self.addEventListener('fetch', event => {
   if (url.pathname.endsWith('/js/updates.js')) return;
   if (url.pathname.endsWith('/sw.js')) return;
 
-  /* 3. Навигация */
+  /* 3. Навигация (открытие страниц) */
   if (req.mode === 'navigate'){
     event.respondWith(
       fetch(req)
