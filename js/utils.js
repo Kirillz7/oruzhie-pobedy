@@ -1,9 +1,5 @@
 /* =========================================================
    ОБЩИЕ УТИЛИТЫ.
-   Подключается и на index.html, и на admin.html ПОСЛЕ data.js.
-   Здесь: DOM-хелперы, хранилище, пользователи, ранги,
-   геймификация, звук, живой фон, override-данные, доступность.
-   Интеграция с Firebase — через Cloud.pushScore() (см. js/cloud.js).
    ========================================================= */
 
 /* ---------- DOM-хелперы ---------- */
@@ -58,7 +54,7 @@ const DB = {
   del(k){ try { localStorage.removeItem('ovp_' + k); } catch {} }
 };
 
-/* ---------- Звук (WebAudio, без файлов) ---------- */
+/* ---------- Звук ---------- */
 const Sound = {
   get enabled(){ return DB.get('sound', true) !== false; },
   ctx:null,
@@ -82,7 +78,7 @@ const Sound = {
   toggle(){ DB.set('sound', !this.enabled); }
 };
 
-/* ---------- Override-данные (заполняются админкой) ---------- */
+/* ---------- Override-данные ---------- */
 const OVERRIDE_KEYS = {
   weapons: 'weapons_override',
   quiz:    'quiz_override',
@@ -126,6 +122,13 @@ const Users = {
         dailyDone: {},
         lastVisit: null,
         streak: 0,
+        profile: {
+          status: '',
+          bio: '',
+          birthday: '',
+          faculty: '',
+          group: ''
+        },
         stats: {
           quizBest:0, quizGames:0,
           matchBest:null, matchGames:0,
@@ -171,8 +174,6 @@ const Rank = {
 
 /* ---------- Геймификация ---------- */
 const Game = {
-  /** Отправить текущий прогресс в облако Firebase.
-      Вызывается из addXp, tickStreak и addToCollection. */
   syncCloud(){
     if (!window.Cloud || !Cloud.ready) return;
     const n = Users.current(); if (!n) return;
@@ -295,8 +296,7 @@ const Game = {
    ========================================================= */
 const BG = {
   canvas: null, ctx: null,
-  particles: [],
-  ripples: [],
+  particles: [], ripples: [],
   raf: 0, running: false,
   mouse: { x: -10000, y: -10000, tx: -10000, ty: -10000 },
 
@@ -310,8 +310,7 @@ const BG = {
     window.addEventListener('resize', () => this.resize());
 
     window.addEventListener('pointermove', (e) => {
-      this.mouse.tx = e.clientX;
-      this.mouse.ty = e.clientY;
+      this.mouse.tx = e.clientX; this.mouse.ty = e.clientY;
     }, { passive: true });
     window.addEventListener('pointerleave', () => {
       this.mouse.tx = -10000; this.mouse.ty = -10000;
@@ -320,10 +319,8 @@ const BG = {
     window.addEventListener('pointerdown', (e) => {
       if (!this.enabled() || this.prefersReduced()) return;
       this.ripples.push({
-        x: e.clientX, y: e.clientY,
-        r: 0,
-        maxR: 130 + Math.random() * 90,
-        a: 0.55,
+        x: e.clientX, y: e.clientY, r: 0,
+        maxR: 130 + Math.random() * 90, a: 0.55,
         hue: Math.random() < 0.72 ? '143,167,99' : '139,157,195'
       });
       if (this.ripples.length > 8) this.ripples.shift();
@@ -347,10 +344,8 @@ const BG = {
     if (!this.canvas) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = window.innerWidth, h = window.innerHeight;
-    this.canvas.width = w * dpr;
-    this.canvas.height = h * dpr;
-    this.canvas.style.width = w + 'px';
-    this.canvas.style.height = h + 'px';
+    this.canvas.width = w * dpr; this.canvas.height = h * dpr;
+    this.canvas.style.width = w + 'px'; this.canvas.style.height = h + 'px';
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const isMobile = w < 700;
@@ -359,24 +354,20 @@ const BG = {
     const count = Math.min(maxCount, Math.max(22, areaCount));
 
     this.particles = [];
-    for (let i = 0; i < count; i++){
-      this.particles.push(this.makeParticle(w, h));
-    }
+    for (let i = 0; i < count; i++) this.particles.push(this.makeParticle(w, h));
   },
 
   makeParticle(w, h){
     const isSpark = Math.random() > 0.88;
     return {
-      x: Math.random() * w,
-      y: Math.random() * h,
+      x: Math.random() * w, y: Math.random() * h,
       vx: (Math.random() - 0.5) * (isSpark ? 0.28 : 0.16),
       vy: (Math.random() - 0.5) * (isSpark ? 0.28 : 0.16),
       r: isSpark ? 1.6 + Math.random() * 1.2 : 0.5 + Math.random() * 1.1,
       a: isSpark ? 0.55 + Math.random() * 0.35 : 0.15 + Math.random() * 0.4,
       phase: Math.random() * Math.PI * 2,
       speed: 0.006 + Math.random() * 0.014,
-      isSpark,
-      trail: 0
+      isSpark, trail: 0
     };
   },
 
@@ -393,25 +384,18 @@ const BG = {
 
     for (let i = this.ripples.length - 1; i >= 0; i--){
       const rp = this.ripples[i];
-      rp.r += 2.4;
-      rp.a *= 0.965;
-      if (rp.r > rp.maxR || rp.a < 0.02){
-        this.ripples.splice(i, 1);
-        continue;
-      }
+      rp.r += 2.4; rp.a *= 0.965;
+      if (rp.r > rp.maxR || rp.a < 0.02){ this.ripples.splice(i, 1); continue; }
       ctx.beginPath();
       ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(${rp.hue}, ${rp.a.toFixed(3)})`;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
+      ctx.lineWidth = 1.4; ctx.stroke();
     }
 
     for (const p of this.particles){
-      p.x += p.vx; p.y += p.vy;
-      p.phase += p.speed;
+      p.x += p.vx; p.y += p.vy; p.phase += p.speed;
       if (p.isSpark && p.trail > 0) p.trail *= 0.94;
       if (p.isSpark && Math.random() < 0.006) p.trail = 1;
-
       if (p.x < -10) p.x = w + 10;
       if (p.x > w + 10) p.x = -10;
       if (p.y < -10) p.y = h + 10;
@@ -419,8 +403,7 @@ const BG = {
     }
 
     if (this.particles.length <= 75){
-      const maxDist = 110;
-      const maxDist2 = maxDist * maxDist;
+      const maxDist = 110, maxDist2 = maxDist * maxDist;
       for (let i = 0; i < this.particles.length; i++){
         const a = this.particles[i];
         for (let j = i + 1; j < this.particles.length; j++){
@@ -430,11 +413,9 @@ const BG = {
           if (d2 < maxDist2){
             const t = 1 - d2 / maxDist2;
             ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
+            ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
             ctx.strokeStyle = `rgba(143,167,99,${(0.10 * t).toFixed(3)})`;
-            ctx.lineWidth = 0.6;
-            ctx.stroke();
+            ctx.lineWidth = 0.6; ctx.stroke();
           }
         }
       }
@@ -451,51 +432,33 @@ const BG = {
         g.addColorStop(0,   `rgba(200,220,160,${(p.a * tw).toFixed(3)})`);
         g.addColorStop(0.4, `rgba(143,167,99,${(p.a * tw * 0.35).toFixed(3)})`);
         g.addColorStop(1,   'rgba(143,167,99,0)');
-        ctx.beginPath();
-        ctx.arc(dx, dy, p.r * 6, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(dx, dy, p.r * 0.9, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(230,245,200,${(p.a * tw).toFixed(3)})`;
-        ctx.fill();
-
+        ctx.beginPath(); ctx.arc(dx, dy, p.r * 6, 0, Math.PI * 2);
+        ctx.fillStyle = g; ctx.fill();
+        ctx.beginPath(); ctx.arc(dx, dy, p.r * 0.9, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(230,245,200,${(p.a * tw).toFixed(3)})`; ctx.fill();
         if (p.trail > 0.05){
           ctx.beginPath();
           ctx.moveTo(dx, dy);
           ctx.lineTo(dx - p.vx * 80 * p.trail, dy - p.vy * 80 * p.trail);
           ctx.strokeStyle = `rgba(200,230,150,${(p.trail * 0.55).toFixed(3)})`;
-          ctx.lineWidth = p.r * 0.7;
-          ctx.lineCap = 'round';
-          ctx.stroke();
+          ctx.lineWidth = p.r * 0.7; ctx.lineCap = 'round'; ctx.stroke();
         }
       } else {
-        ctx.beginPath();
-        ctx.arc(dx, dy, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(180,200,131,${(p.a * tw).toFixed(3)})`;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(dx, dy, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(180,200,131,${(p.a * tw).toFixed(3)})`; ctx.fill();
       }
     }
 
     this.raf = requestAnimationFrame(() => this.draw());
   },
 
-  start(){
-    if (this.running) return;
-    this.running = true;
-    this.draw();
-  },
-
+  start(){ if (this.running) return; this.running = true; this.draw(); },
   stop(){
     this.running = false;
     if (this.raf) cancelAnimationFrame(this.raf);
     this.raf = 0;
-    if (this.ctx && this.canvas){
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
+    if (this.ctx && this.canvas) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   },
-
   toggle(){
     const on = !this.enabled();
     DB.set('bg', on);
@@ -527,12 +490,9 @@ function setA11y(on){
   const btn = document.getElementById('a11yBtn');
   if (btn) btn.style.opacity = on ? '1' : '.55';
 }
-function initA11y(){
-  const saved = DB.get('a11y', false);
-  setA11y(saved);
-}
+function initA11y(){ setA11y(DB.get('a11y', false)); }
 
-/* ---------- Общий chrome (шапка) ---------- */
+/* ---------- Общий chrome ---------- */
 function initCommonChrome(){
   const saved = DB.get('theme', 'dark');
   setTheme(saved);
