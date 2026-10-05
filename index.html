@@ -574,25 +574,74 @@
 
     <div class="form" style="margin-top:14px">
       <label class="admin-field">
-        <span class="admin-field__label">Статус (короткая фраза)</span>
-        <input class="input" id="pfStatus" maxlength="60" placeholder="Например: курсант ВШКИ">
+        <span class="admin-field__label">Статус</span>
+        <select class="input" id="pfStatusSelect">
+          <option value="">— не указано —</option>
+          <option value="Студент 1 курса">Студент 1 курса</option>
+          <option value="Студент 2 курса">Студент 2 курса</option>
+          <option value="Студент 3 курса">Студент 3 курса</option>
+          <option value="Студент 4 курса">Студент 4 курса</option>
+          <option value="Магистрант">Магистрант</option>
+          <option value="Староста">Староста</option>
+          <option value="Курсант">Курсант</option>
+          <option value="Активист">Активист</option>
+          <option value="Отличник учёбы">Отличник учёбы</option>
+          <option value="__custom__">✏️ Свой вариант</option>
+        </select>
+        <input class="input" id="pfStatus" maxlength="60" placeholder="Введите свой статус"
+               style="margin-top:8px" hidden>
       </label>
+
+      <label class="admin-field">
+        <span class="admin-field__label">Пол</span>
+        <select class="input" id="pfGender">
+          <option value="">— не указывать —</option>
+          <option value="male">Мужской</option>
+          <option value="female">Женский</option>
+        </select>
+      </label>
+
       <label class="admin-field">
         <span class="admin-field__label">О себе</span>
         <textarea class="input admin-textarea" id="pfBio" maxlength="300"
           placeholder="Пара слов о себе: увлечения, что нравится в проекте"></textarea>
       </label>
+
       <label class="admin-field">
         <span class="admin-field__label">День рождения</span>
-        <input class="input" id="pfBirthday" maxlength="30" placeholder="Например: 15 мая">
+        <input class="input" id="pfBirthday" type="date">
       </label>
+
       <label class="admin-field">
         <span class="admin-field__label">ВШ / факультет</span>
-        <input class="input" id="pfFaculty" maxlength="60" placeholder="Например: ВШКИ">
+        <select class="input" id="pfFaculty">
+          <option value="">— не указано —</option>
+          <optgroup label="Высшие школы РЭУ им. Г.В. Плеханова">
+            <option value="ВШКИ">ВШКИ — кибертехнологий, математики и статистики</option>
+            <option value="ВШЭиБ">ВШЭиБ — экономики и бизнеса</option>
+            <option value="ВШФ">ВШФ — финансов</option>
+            <option value="ВШМ">ВШМ — менеджмента</option>
+            <option value="ВШСиГН">ВШСиГН — социально-гуманитарных наук</option>
+            <option value="ВШКИ-КИ">ВШКИ — креативных индустрий</option>
+            <option value="ВШП">ВШП — права</option>
+            <option value="ВИШ НМиТ">ВИШ «Новые материалы и технологии»</option>
+          </optgroup>
+          <optgroup label="Факультеты и институты">
+            <option value="ИЭФ">ИЭФ — Институт экономики и финансов</option>
+            <option value="ИМиИТ">ИМиИТ — математики и информационных технологий</option>
+            <option value="ПАМ">Первая Академия медиа</option>
+            <option value="ФК">Факультет «КАПИТАНЫ»</option>
+            <option value="ИНТЕГРАЛ">Плехановская школа бизнеса «Интеграл»</option>
+            <option value="ФДПО">Факультет дополнительного проф. образования</option>
+            <option value="ФОРСАЙТ">Спецфакт «Форсайт»</option>
+          </optgroup>
+          <option value="other">Другое</option>
+        </select>
       </label>
+
       <label class="admin-field">
         <span class="admin-field__label">Группа</span>
-        <input class="input" id="pfGroup" maxlength="30" placeholder="Например: 15.23В-Р1/266">
+        <input class="input" id="pfGroup" maxlength="30" placeholder="Например: 15.23В-Р1/26б">
       </label>
     </div>
 
