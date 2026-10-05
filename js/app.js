@@ -1,9 +1,5 @@
 /* =========================================================
    ЛОГИКА index.html
-   Дополнительные игры (TF, React, Assembly, Tactic, WordGame)
-   определены в js/games-extra.js и подключаются до этого файла.
-   Синхронизация рейтинга — через window.Cloud (Firebase).
-   Система обновлений — в js/updates.js.
    ========================================================= */
 
 /* ---------- Параллакс героя ---------- */
@@ -417,13 +413,8 @@ const Match = {
       const src = weaponImageSrc(w);
       if (src){
         const img = el('img');
-        img.src = src;
-        img.alt = w.name;
-        img.loading = 'lazy';
-        img.onerror = () => {
-          img.remove();
-          back.appendChild(el('div','mcard__emoji', w.emoji));
-        };
+        img.src = src; img.alt = w.name; img.loading = 'lazy';
+        img.onerror = () => { img.remove(); back.appendChild(el('div','mcard__emoji', w.emoji)); };
         back.appendChild(img);
         back.appendChild(el('small', null, w.name));
       } else {
@@ -627,7 +618,7 @@ const Quiz = {
 };
 
 /* =========================================================
-   ИГРА «УГАДАЙ ПО СИЛУЭТУ» — с фото
+   ИГРА «УГАДАЙ ПО СИЛУЭТУ»
    ========================================================= */
 const Sil = {
   list:[], idx:0, score:0, locked:false,
@@ -767,13 +758,8 @@ const Odd = {
       const src = weaponImageSrc(w);
       if (src){
         const img = el('img');
-        img.src = src;
-        img.alt = w.name;
-        img.loading = 'lazy';
-        img.onerror = () => {
-          img.remove();
-          media.textContent = w.emoji;
-        };
+        img.src = src; img.alt = w.name; img.loading = 'lazy';
+        img.onerror = () => { img.remove(); media.textContent = w.emoji; };
         media.appendChild(img);
       } else {
         media.textContent = w.emoji;
@@ -1259,6 +1245,7 @@ function openAvatarPicker(){
       Users.update(u => { u.avatar = a; });
       toast('Аватар обновлён');
       Sound.tap();
+      Game.syncCloud();
       openAvatarPicker();
     };
     picker.appendChild(b);
@@ -1269,6 +1256,7 @@ function openAvatarPicker(){
   resetBtn.onclick = () => {
     Users.update(u => { u.avatar = '🎖️'; });
     toast('Возвращён стандартный аватар');
+    Game.syncCloud();
     openAvatarPicker();
   };
 
@@ -1283,6 +1271,7 @@ function openAvatarPicker(){
       Users.update(u => { u.avatar = dataUrl; });
       toast('Фото загружено');
       Sound.ok();
+      Game.syncCloud();
       openAvatarPicker();
     } catch (e){
       toast('Не удалось загрузить изображение');
@@ -1298,7 +1287,178 @@ function closeAvatarModal(){
 }
 
 /* =========================================================
-   РЕЙТИНГ (из облака Firebase)
+   ПРОСМОТР И РЕДАКТИРОВАНИЕ ПРОФИЛЕЙ
+   ========================================================= */
+
+/* Открывает редактор своего профиля */
+function openProfileEditor(){
+  const user = Users.data();
+  if (!user) return;
+
+  const p = user.profile || {};
+  document.getElementById('pfStatus').value   = p.status   || '';
+  document.getElementById('pfBio').value      = p.bio      || '';
+  document.getElementById('pfBirthday').value = p.birthday || '';
+  document.getElementById('pfFaculty').value  = p.faculty  || '';
+  document.getElementById('pfGroup').value    = p.group    || '';
+
+  document.getElementById('profileEditorModal').hidden = false;
+}
+function closeProfileEditor(){
+  document.getElementById('profileEditorModal').hidden = true;
+}
+
+function saveProfile(){
+  const fields = {
+    status:   (document.getElementById('pfStatus').value || '').trim(),
+    bio:      (document.getElementById('pfBio').value || '').trim(),
+    birthday: (document.getElementById('pfBirthday').value || '').trim(),
+    faculty:  (document.getElementById('pfFaculty').value || '').trim(),
+    group:    (document.getElementById('pfGroup').value || '').trim()
+  };
+  Users.update(u => {
+    u.profile = Object.assign({}, u.profile || {}, fields);
+  });
+  Game.syncCloud();
+  closeProfileEditor();
+  renderProfile();
+  toast('Профиль сохранён');
+}
+
+/* Открывает чужой профиль по позывному */
+async function openProfileViewer(nick){
+  const box = document.getElementById('profileViewerBox');
+  box.innerHTML = '<p class="muted">Загрузка профиля…</p>';
+  document.getElementById('profileViewerModal').hidden = false;
+
+  let data = null;
+
+  // Если это наш собственный профиль — берём из localStorage
+  if (nick === Users.current()){
+    const me = Users.data();
+    if (me){
+      data = {
+        nick,
+        xp: me.xp || 0,
+        rank: Rank.current(me.xp || 0).name,
+        avatar: me.avatar || '🎖️',
+        profile: me.profile || {},
+        achievements: me.achievements || [],
+        stats: me.stats || {}
+      };
+    }
+  }
+
+  // Иначе — читаем из Firebase
+  if (!data && window.Cloud && Cloud.ready){
+    data = await Cloud.getProfile(nick);
+  }
+
+  if (!data){
+    box.innerHTML = '<p class="muted">Профиль не найден</p>';
+    return;
+  }
+
+  const p = data.profile || {};
+  const me = Users.current();
+  const isMe = nick === me;
+
+  box.innerHTML = '';
+
+  // Шапка: аватар, ник, звание, статус
+  const head = el('div','profile-head');
+  const av = el('div','avatar');
+  renderAvatarInto(av, data.avatar || '🎖️');
+  head.appendChild(av);
+
+  const headText = el('div', null, '');
+  headText.style.flex = '1';
+  headText.style.minWidth = '0';
+  headText.appendChild(el('div','profile-name', data.nick + (isMe ? ' (вы)' : '')));
+
+  const rankLine = el('div','muted small',
+    '🎖️ ' + (data.rank || 'Рядовой') + ' · ' + (data.xp || 0) + ' XP');
+  rankLine.style.marginTop = '2px';
+  headText.appendChild(rankLine);
+
+  head.appendChild(headText);
+  box.appendChild(head);
+
+  // Статус
+  if (p.status){
+    const st = el('div','profile-about__status', p.status);
+    box.appendChild(st);
+  }
+
+  // Факультет, группа, ДР
+  const rows = [
+    ['🎓 ВШ / факультет', p.faculty],
+    ['👥 Группа', p.group],
+    ['🎂 День рождения', p.birthday]
+  ].filter(([_, v]) => v);
+
+  if (rows.length){
+    const table = el('table','specs');
+    rows.forEach(([k, v]) => {
+      const tr = el('tr');
+      tr.appendChild(el('th', null, k));
+      tr.appendChild(el('td', null, v));
+      table.appendChild(tr);
+    });
+    box.appendChild(table);
+  }
+
+  // О себе
+  if (p.bio){
+    box.appendChild(el('h3', null, 'О себе'));
+    const bio = el('p', null, p.bio);
+    bio.style.whiteSpace = 'pre-wrap';
+    bio.style.margin = '0 0 8px';
+    box.appendChild(bio);
+  }
+
+  // Достижения
+  const achIds = data.achievements || [];
+  if (achIds.length){
+    box.appendChild(el('h3', null, 'Достижения'));
+    const bbox = el('div','badges');
+    ACHIEVEMENTS.forEach(a => {
+      const own = achIds.includes(a.id);
+      const b = el('div','badge' + (own ? '' : ' locked'));
+      b.appendChild(el('div','badge__icon', a.icon));
+      b.appendChild(el('div','badge__name', a.name));
+      b.appendChild(el('div','badge__desc', a.desc));
+      bbox.appendChild(b);
+    });
+    box.appendChild(bbox);
+  }
+
+  // Если это наш профиль — кнопка редактирования
+  if (isMe){
+    const editBtn = el('button','btn btn--primary','✏️ Редактировать');
+    editBtn.type = 'button';
+    editBtn.style.width = '100%';
+    editBtn.style.marginTop = '14px';
+    editBtn.onclick = () => {
+      document.getElementById('profileViewerModal').hidden = true;
+      openProfileEditor();
+    };
+    box.appendChild(editBtn);
+  }
+
+  // Кнопка закрыть
+  const close = el('button','btn','Закрыть');
+  close.type = 'button';
+  close.style.width = '100%';
+  close.style.marginTop = isMe ? '8px' : '14px';
+  close.onclick = () => {
+    document.getElementById('profileViewerModal').hidden = true;
+  };
+  box.appendChild(close);
+}
+
+/* =========================================================
+   РЕЙТИНГ
    ========================================================= */
 function renderRating(){
   const box = document.getElementById('leaderboard');
@@ -1321,7 +1481,12 @@ function renderRating(){
       row.appendChild(av);
 
       const nameCell = el('div','lb-row__name');
-      nameCell.appendChild(document.createTextNode(r.nick + (r.nick === me ? ' (вы)' : '')));
+      const nickBtn = el('button','lb-row__nick',
+        r.nick + (r.nick === me ? ' (вы)' : ''));
+      nickBtn.type = 'button';
+      nickBtn.title = 'Открыть профиль';
+      nickBtn.onclick = () => openProfileViewer(r.nick);
+      nameCell.appendChild(nickBtn);
       nameCell.appendChild(el('small','', r.rank || ''));
       row.appendChild(nameCell);
       row.appendChild(el('div','lb-row__xp', (r.xp || 0) + ' XP'));
@@ -1381,6 +1546,46 @@ function renderProfile(){
   const rankLine = el('div','muted small rank-line', r.icon + ' ' + r.name);
   rankLine.style.marginTop = '2px';
   ep.parentElement.insertBefore(rankLine, ep.nextSibling);
+
+  // Показ «о себе» из профиля
+  const oldAbout = document.querySelector('.profile-about');
+  if (oldAbout) oldAbout.remove();
+
+  const prof = d.profile || {};
+  if (prof.status || prof.bio || prof.faculty || prof.group || prof.birthday){
+    const about = el('div','profile-about');
+    if (prof.status){
+      about.appendChild(el('div','profile-about__status', prof.status));
+    }
+    const lines = [
+      prof.faculty ? '🎓 ' + prof.faculty : null,
+      prof.group ? '👥 ' + prof.group : null,
+      prof.birthday ? '🎂 ' + prof.birthday : null
+    ].filter(Boolean);
+    if (lines.length){
+      lines.forEach(l => {
+        const div = el('div','muted small', l);
+        div.style.marginTop = '2px';
+        about.appendChild(div);
+      });
+    }
+    if (prof.bio){
+      const bio = el('p','profile-about__bio', prof.bio);
+      about.appendChild(bio);
+    }
+    const head = document.querySelector('#profileBox .profile-head');
+    head.parentNode.insertBefore(about, head.nextSibling);
+  }
+
+  // Кнопка «О себе» в ряду действий
+  const actionsRow = document.querySelector('#profileBox .row');
+  if (actionsRow && !actionsRow.querySelector('#editProfileBtn')){
+    const eb = el('button','btn','✏️ О себе');
+    eb.id = 'editProfileBtn';
+    eb.type = 'button';
+    eb.onclick = openProfileEditor;
+    actionsRow.insertBefore(eb, actionsRow.firstChild);
+  }
 
   document.getElementById('pXp').textContent = d.xp || 0;
   const curBase = r.xp;
@@ -1517,7 +1722,10 @@ function renderTeacher(){
       const row = el('div','lb-row');
       row.appendChild(el('div','lb-row__rank', String(i + 1)));
       const nameCell = el('div','lb-row__name');
-      nameCell.appendChild(document.createTextNode(r.nick));
+      const nickBtn = el('button','lb-row__nick', r.nick);
+      nickBtn.type = 'button';
+      nickBtn.onclick = () => openProfileViewer(r.nick);
+      nameCell.appendChild(nickBtn);
       nameCell.appendChild(el('small','', r.rank + ' · игр: ' + r.games + ' · точность: ' + r.acc));
       row.appendChild(nameCell);
       row.appendChild(el('div','lb-row__xp', r.xp + ' XP'));
@@ -1814,12 +2022,34 @@ function init(){
   document.getElementById('shareNativeBtn').onclick = shareNative;
   document.getElementById('shareCopyBtn').onclick = copyShareText;
 
+  // Новые модалки профиля
+  const pfSave = document.getElementById('pfSaveBtn');
+  if (pfSave) pfSave.onclick = saveProfile;
+  const pfCancel = document.getElementById('pfCancelBtn');
+  if (pfCancel) pfCancel.onclick = closeProfileEditor;
+  const pfModal = document.getElementById('profileEditorModal');
+  if (pfModal){
+    pfModal.onclick = e => {
+      if (e.target.id === 'profileEditorModal') closeProfileEditor();
+    };
+  }
+  const pvModal = document.getElementById('profileViewerModal');
+  if (pvModal){
+    pvModal.onclick = e => {
+      if (e.target.id === 'profileViewerModal') pvModal.hidden = true;
+    };
+  }
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape'){
       closeModal();
       document.getElementById('welcomeModal').hidden = true;
       document.getElementById('avatarModal').hidden = true;
       document.getElementById('shareModal').hidden = true;
+      const pe = document.getElementById('profileEditorModal');
+      if (pe) pe.hidden = true;
+      const pv = document.getElementById('profileViewerModal');
+      if (pv) pv.hidden = true;
     }
   });
 
