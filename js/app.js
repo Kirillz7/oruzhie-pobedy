@@ -627,7 +627,7 @@ const Quiz = {
 };
 
 /* =========================================================
-   ИГРА «УГАДАЙ ПО СИЛУЭТУ»
+   ИГРА «УГАДАЙ ПО СИЛУЭТУ» — с фото
    ========================================================= */
 const Sil = {
   list:[], idx:0, score:0, locked:false,
@@ -658,7 +658,16 @@ const Sil = {
     document.getElementById('silScore').textContent = this.score;
 
     const s = document.getElementById('silImg'); s.innerHTML = '';
-    s.appendChild(el('div','sil-img__icon', w.emoji));
+    const silSrc = 'images/silhouettes/' + w.id + '.png';
+    const silImg = el('img');
+    silImg.src = silSrc;
+    silImg.alt = '';
+    silImg.className = 'sil-img__photo';
+    silImg.onerror = () => {
+      silImg.remove();
+      s.appendChild(el('div','sil-img__icon', w.emoji));
+    };
+    s.appendChild(silImg);
 
     const opts = document.getElementById('silOpts'); opts.innerHTML = '';
     q.options.forEach((o, i) => {
