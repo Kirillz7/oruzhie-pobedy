@@ -1742,3 +1742,56 @@ html[data-theme="dark"] .badge-new{
 html[data-theme="dark"] .sil-img__photo{
   filter:brightness(0) invert(1);
 }
+
+
+/* =========================================================
+   ПРОСМОТР И РЕДАКТИРОВАНИЕ ПРОФИЛЕЙ
+   ========================================================= */
+
+/* Блок «о себе» в своём профиле */
+.profile-about{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px dashed var(--border);
+}
+.profile-about__status{
+  font-family:var(--font-head);
+  font-size:1.05rem;
+  font-weight:600;
+  font-style:italic;
+  color:var(--accent-2);
+  margin-bottom:6px;
+}
+.profile-about__bio{
+  margin:8px 0 0;
+  font-size:.92rem;
+  line-height:1.5;
+  white-space:pre-wrap;
+  color:var(--text);
+}
+
+/* Кликабельный позывной в рейтинге */
+.lb-row__nick{
+  background:none;
+  border:0;
+  padding:0;
+  margin:0;
+  color:var(--text);
+  font-family:inherit;
+  font-size:inherit;
+  font-weight:600;
+  text-align:left;
+  cursor:pointer;
+  text-decoration:underline dotted;
+  text-decoration-color:var(--muted);
+  text-underline-offset:3px;
+  transition:color .15s, text-decoration-color .15s;
+}
+.lb-row__nick:hover{
+  color:var(--accent-2);
+  text-decoration-color:var(--accent);
+}
+.lb-row.me .lb-row__nick{ color:var(--accent-2); }
+
+/* Кнопка «О себе» в ряду действий профиля */
+#editProfileBtn{ /* наследует всё от .btn */ }
