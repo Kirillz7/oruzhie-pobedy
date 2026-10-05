@@ -1,5 +1,6 @@
 /* =========================================================
    ОБЩИЕ УТИЛИТЫ.
+   Подключается на index.html и admin.html ПОСЛЕ data.js.
    ========================================================= */
 
 /* ---------- DOM-хелперы ---------- */
@@ -127,7 +128,8 @@ const Users = {
           bio: '',
           birthday: '',
           faculty: '',
-          group: ''
+          group: '',
+          gender: ''
         },
         stats: {
           quizBest:0, quizGames:0,
@@ -183,9 +185,16 @@ const Game = {
 
   addXp(amount){
     if (!Users.current()) return;
+    const before = Rank.current(Users.data()?.xp || 0);
     Users.update(u => { u.xp = (u.xp || 0) + amount; });
+    const after = Rank.current(Users.data()?.xp || 0);
     toast('+' + amount + ' XP');
     this.syncCloud();
+
+    if (after && after.name !== before.name && typeof notifRankUp === 'function'){
+      notifRankUp(after);
+      Sound.win();
+    }
   },
 
   addCorrect(weaponId){
@@ -235,7 +244,10 @@ const Game = {
       Users.update(u => { u.achievements = [...new Set([...(u.achievements||[]), ...add])]; });
       add.forEach(id => {
         const a = ACHIEVEMENTS.find(x => x.id === id);
-        if (a) setTimeout(() => { toast(a.icon + ' Достижение: ' + a.name); Sound.win(); }, 400);
+        if (a){
+          setTimeout(() => { toast(a.icon + ' Достижение: ' + a.name); Sound.win(); }, 400);
+          if (typeof notifAchievement === 'function') notifAchievement(a);
+        }
       });
       this.addXp(add.length * 50);
       this.syncCloud();
