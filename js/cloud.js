@@ -1,6 +1,6 @@
 /* =========================================================
-   CLOUD.JS — работа с Firebase Realtime Database.
-   Использует compat-версию SDK (обычный <script>, не модуль).
+   CLOUD.JS — Firebase Realtime Database.
+   Использует compat-версию SDK.
    ========================================================= */
 
 const firebaseConfig = {
@@ -46,20 +46,49 @@ const Cloud = {
     else this.callbacks.push(cb);
   },
 
+  /* Записывает весь профиль игрока: xp, ранг, статы, аватар, профиль, достижения */
   async pushScore(nick, xp, stats, rank){
     if (!this.ready || !nick) return false;
     try {
+      const d = (window.Users && Users.data()) || {};
       await this.db.ref('leaderboard/' + nick).set({
         nick,
         xp: xp || 0,
         rank: rank || 'Рядовой',
         stats: stats || {},
+        avatar: d.avatar || '🎖️',
+        profile: d.profile || {},
+        achievements: d.achievements || [],
         updatedAt: Date.now()
       });
       return true;
     } catch (e){
       console.warn('[Cloud] push error:', e.message);
       return false;
+    }
+  },
+
+  /* Обновляет только указанные поля, не перезаписывая остальные */
+  async pushProfile(nick, fields){
+    if (!this.ready || !nick) return false;
+    try {
+      await this.db.ref('leaderboard/' + nick).update(fields);
+      return true;
+    } catch (e){
+      console.warn('[Cloud] pushProfile error:', e.message);
+      return false;
+    }
+  },
+
+  /* Читает профиль по позывному */
+  async getProfile(nick){
+    if (!this.ready || !nick) return null;
+    try {
+      const snap = await this.db.ref('leaderboard/' + nick).once('value');
+      return snap.val();
+    } catch (e){
+      console.warn('[Cloud] getProfile error:', e.message);
+      return null;
     }
   },
 
