@@ -1296,26 +1296,73 @@ function openProfileEditor(){
   if (!user) return;
 
   const p = user.profile || {};
-  document.getElementById('pfStatus').value   = p.status   || '';
+  const statusVal = p.status || '';
+
+  const selectEl = document.getElementById('pfStatusSelect');
+  const customEl = document.getElementById('pfStatus');
+
+  const presetValues = [
+    'Студент 1 курса', 'Студент 2 курса', 'Студент 3 курса', 'Студент 4 курса',
+    'Магистрант', 'Староста', 'Курсант', 'Активист', 'Отличник учёбы'
+  ];
+
+  if (!statusVal){
+    selectEl.value = '';
+    customEl.value = '';
+    customEl.hidden = true;
+  } else if (presetValues.includes(statusVal)){
+    selectEl.value = statusVal;
+    customEl.value = '';
+    customEl.hidden = true;
+  } else {
+    selectEl.value = '__custom__';
+    customEl.value = statusVal;
+    customEl.hidden = false;
+  }
+
+  selectEl.onchange = () => {
+    if (selectEl.value === '__custom__'){
+      customEl.hidden = false;
+      customEl.focus();
+    } else {
+      customEl.hidden = true;
+      customEl.value = '';
+    }
+  };
+
   document.getElementById('pfBio').value      = p.bio      || '';
   document.getElementById('pfBirthday').value = p.birthday || '';
   document.getElementById('pfFaculty').value  = p.faculty  || '';
   document.getElementById('pfGroup').value    = p.group    || '';
+  document.getElementById('pfGender').value   = p.gender   || '';
 
   document.getElementById('profileEditorModal').hidden = false;
 }
+
 function closeProfileEditor(){
   document.getElementById('profileEditorModal').hidden = true;
 }
 
 function saveProfile(){
+  const statusSelect = document.getElementById('pfStatusSelect');
+  const statusCustom = document.getElementById('pfStatus');
+
+  let status = '';
+  if (statusSelect.value === '__custom__'){
+    status = (statusCustom.value || '').trim();
+  } else {
+    status = statusSelect.value || '';
+  }
+
   const fields = {
-    status:   (document.getElementById('pfStatus').value || '').trim(),
+    status:   status,
     bio:      (document.getElementById('pfBio').value || '').trim(),
     birthday: (document.getElementById('pfBirthday').value || '').trim(),
     faculty:  (document.getElementById('pfFaculty').value || '').trim(),
-    group:    (document.getElementById('pfGroup').value || '').trim()
+    group:    (document.getElementById('pfGroup').value || '').trim(),
+    gender:   (document.getElementById('pfGender').value || '').trim()
   };
+
   Users.update(u => {
     u.profile = Object.assign({}, u.profile || {}, fields);
   });
@@ -1323,6 +1370,25 @@ function saveProfile(){
   closeProfileEditor();
   renderProfile();
   toast('Профиль сохранён');
+}
+
+/* Красиво форматирует дату: 2026-05-15 → «15 мая» */
+function formatBirthday(raw){
+  if (!raw) return '';
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return raw;
+  const months = ['января','февраля','марта','апреля','мая','июня',
+                  'июля','августа','сентября','октября','ноября','декабря'];
+  const day = parseInt(m[3], 10);
+  const monthIdx = parseInt(m[2], 10) - 1;
+  return day + ' ' + months[monthIdx];
+}
+
+/* Красиво показывает пол */
+function genderLabel(g){
+  if (g === 'male')   return '♂ Мужской';
+  if (g === 'female') return '♀ Женский';
+  return '';
 }
 
 /* Открывает чужой профиль по позывному */
@@ -1333,7 +1399,6 @@ async function openProfileViewer(nick){
 
   let data = null;
 
-  // Если это наш собственный профиль — берём из localStorage
   if (nick === Users.current()){
     const me = Users.data();
     if (me){
@@ -1349,7 +1414,6 @@ async function openProfileViewer(nick){
     }
   }
 
-  // Иначе — читаем из Firebase
   if (!data && window.Cloud && Cloud.ready){
     data = await Cloud.getProfile(nick);
   }
@@ -1365,7 +1429,6 @@ async function openProfileViewer(nick){
 
   box.innerHTML = '';
 
-  // Шапка: аватар, ник, звание, статус
   const head = el('div','profile-head');
   const av = el('div','avatar');
   renderAvatarInto(av, data.avatar || '🎖️');
@@ -1384,17 +1447,15 @@ async function openProfileViewer(nick){
   head.appendChild(headText);
   box.appendChild(head);
 
-  // Статус
   if (p.status){
-    const st = el('div','profile-about__status', p.status);
-    box.appendChild(st);
+    box.appendChild(el('div','profile-about__status', p.status));
   }
 
-  // Факультет, группа, ДР
   const rows = [
     ['🎓 ВШ / факультет', p.faculty],
     ['👥 Группа', p.group],
-    ['🎂 День рождения', p.birthday]
+    ['🎂 День рождения', formatBirthday(p.birthday)],
+    ['Пол', genderLabel(p.gender)]
   ].filter(([_, v]) => v);
 
   if (rows.length){
@@ -1408,7 +1469,6 @@ async function openProfileViewer(nick){
     box.appendChild(table);
   }
 
-  // О себе
   if (p.bio){
     box.appendChild(el('h3', null, 'О себе'));
     const bio = el('p', null, p.bio);
@@ -1417,7 +1477,6 @@ async function openProfileViewer(nick){
     box.appendChild(bio);
   }
 
-  // Достижения
   const achIds = data.achievements || [];
   if (achIds.length){
     box.appendChild(el('h3', null, 'Достижения'));
@@ -1433,7 +1492,6 @@ async function openProfileViewer(nick){
     box.appendChild(bbox);
   }
 
-  // Если это наш профиль — кнопка редактирования
   if (isMe){
     const editBtn = el('button','btn btn--primary','✏️ Редактировать');
     editBtn.type = 'button';
@@ -1446,7 +1504,6 @@ async function openProfileViewer(nick){
     box.appendChild(editBtn);
   }
 
-  // Кнопка закрыть
   const close = el('button','btn','Закрыть');
   close.type = 'button';
   close.style.width = '100%';
@@ -1552,15 +1609,16 @@ function renderProfile(){
   if (oldAbout) oldAbout.remove();
 
   const prof = d.profile || {};
-  if (prof.status || prof.bio || prof.faculty || prof.group || prof.birthday){
+  if (prof.status || prof.bio || prof.faculty || prof.group || prof.birthday || prof.gender){
     const about = el('div','profile-about');
     if (prof.status){
       about.appendChild(el('div','profile-about__status', prof.status));
     }
     const lines = [
-      prof.faculty ? '🎓 ' + prof.faculty : null,
-      prof.group ? '👥 ' + prof.group : null,
-      prof.birthday ? '🎂 ' + prof.birthday : null
+      prof.faculty  ? '🎓 ' + prof.faculty : null,
+      prof.group    ? '👥 ' + prof.group : null,
+      prof.birthday ? '🎂 ' + formatBirthday(prof.birthday) : null,
+      prof.gender   ? genderLabel(prof.gender) : null
     ].filter(Boolean);
     if (lines.length){
       lines.forEach(l => {
@@ -2022,7 +2080,7 @@ function init(){
   document.getElementById('shareNativeBtn').onclick = shareNative;
   document.getElementById('shareCopyBtn').onclick = copyShareText;
 
-  // Новые модалки профиля
+  // Модалки профиля
   const pfSave = document.getElementById('pfSaveBtn');
   if (pfSave) pfSave.onclick = saveProfile;
   const pfCancel = document.getElementById('pfCancelBtn');
