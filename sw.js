@@ -95,21 +95,3 @@ self.addEventListener('fetch', event => {
 self.addEventListener('message', event => {
   if (event.data === 'skipWaiting') self.skipWaiting();
 });
-
-
-/* =========================================================
-   ФОТО-СИЛУЭТЫ (игра «Угадай по силуэту»)
-   Цветное фото с прозрачным фоном превращается в чёрный
-   силуэт через CSS-фильтр. В тёмной теме — в белый, чтобы
-   было видно на чёрном фоне.
-   ========================================================= */
-.sil-img__photo{
-  max-width:80%;
-  max-height:80%;
-  object-fit:contain;
-  filter:brightness(0);
-  user-select:none;
-}
-html[data-theme="dark"] .sil-img__photo{
-  filter:brightness(0) invert(1);
-}
