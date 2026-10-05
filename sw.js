@@ -1,16 +1,7 @@
 /* =========================================================
    Service Worker — «Оружие Победы»
-   Cache-first с подмешиванием свежих данных из сети.
-
-   ВАЖНО:
-   - cloud.js НЕ кэшируется — всегда тянется из сети.
-   - updates.js — НЕ кэшируется, чтобы новая версия подхватывалась сразу.
-   - Внешние скрипты (Firebase SDK, Google Fonts) не перехватываются.
-
-   При изменении файлов — поднять CACHE (v14 → v15 → ...)
-   и обновить APP_VERSION в js/updates.js.
    ========================================================= */
-const CACHE = 'ovp-pobeda-v14';
+const CACHE = 'ovp-pobeda-v15';
 
 const ASSETS = [
   './',
@@ -25,7 +16,7 @@ const ASSETS = [
   './manifest.json',
   './images/icon.svg'
   // cloud.js — НЕ в кэше, всегда из сети (ES-модуль)
-  // updates.js — НЕ в кэше, всегда из сети (чтобы быстро узнавать об обновлениях)
+  // updates.js — НЕ в кэше, всегда из сети
 ];
 
 self.addEventListener('install', event => {
@@ -53,15 +44,12 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(req.url);
 
-  /* 1. Внешние домены — мимо кэша (Firebase SDK, Google Fonts) */
   if (url.origin !== location.origin) return;
 
-  /* 2. Файлы, которые нельзя кэшировать — всегда из сети */
   if (url.pathname.endsWith('/js/cloud.js')) return;
   if (url.pathname.endsWith('/js/updates.js')) return;
   if (url.pathname.endsWith('/sw.js')) return;
 
-  /* 3. Навигация (открытие страниц) */
   if (req.mode === 'navigate'){
     event.respondWith(
       fetch(req)
@@ -75,7 +63,6 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  /* 4. Остальное: cache-first, потом сеть */
   event.respondWith(
     caches.match(req).then(cached => {
       if (cached) return cached;
