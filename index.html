@@ -34,6 +34,10 @@
       <span class="logo__text">Оружие Победы<small>Тема 52 · РЭУ им. Г.В. Плеханова</small></span>
     </a>
     <div class="header__actions">
+      <button id="notifBtn" class="icon-btn notif-btn" aria-label="Уведомления" title="Уведомления">
+        🔔
+        <span id="notifBadge" class="notif-badge" hidden>0</span>
+      </button>
       <button id="a11yBtn" class="icon-btn" aria-label="Крупный шрифт" title="Крупный шрифт">A+</button>
       <button id="bgBtn" class="icon-btn" aria-label="Анимированный фон" title="Фон">✨</button>
       <button id="soundBtn" class="icon-btn" aria-label="Звук" title="Звук">🔊</button>
@@ -83,6 +87,9 @@
         <div class="hero__status" id="heroStatus"></div>
       </div>
     </div>
+
+    <h2 class="section-title"><span class="sec-mark">▸</span> Топ-5 группы</h2>
+    <div class="top5" id="top5Box"></div>
 
     <h2 class="section-title" data-new="12"><span class="sec-mark">▸</span> Полигон</h2>
     <div class="game-grid" id="homeGames"></div>
@@ -499,6 +506,8 @@
         с карточки или через позывной и кодовое слово. Можно заполнить свой профиль —
         статус, о себе, ВШ и группу.</p>
       <p><b>Рейтинг</b> — общий для всей группы. Нажмите на позывной, чтобы посмотреть чужой профиль.</p>
+      <p><b>Уведомления</b> — колокольчик в шапке. Приходят о достижениях, повышении звания
+        и приветствии.</p>
     </div>
 
     <div class="panel">
@@ -566,7 +575,6 @@
   </div>
 </div>
 
-<!-- ================= РЕДАКТОР ПРОФИЛЯ ================= -->
 <div class="modal" id="profileEditorModal" hidden>
   <div class="modal__box">
     <h2>✏️ О себе</h2>
@@ -654,9 +662,19 @@
   </div>
 </div>
 
-<!-- ================= ПРОСМОТР ЧУЖОГО ПРОФИЛЯ ================= -->
 <div class="modal" id="profileViewerModal" hidden>
   <div class="modal__box" id="profileViewerBox"></div>
+</div>
+
+<div class="modal" id="notifModal" hidden>
+  <div class="modal__box">
+    <div class="notif-head">
+      <h2>🔔 Уведомления</h2>
+      <button class="notif-clear" id="notifClearBtn" type="button" title="Прочитать все">✓ Все</button>
+    </div>
+    <div id="notifList" class="notif-list"></div>
+    <button class="btn" id="notifCloseBtn" type="button" style="width:100%;margin-top:14px">Закрыть</button>
+  </div>
 </div>
 
 <div class="modal" id="shareModal" hidden>
